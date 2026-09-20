@@ -152,12 +152,19 @@
       }
     });
 
+    function updateSliderFill(val) {
+      const pct = Math.round(val * 100);
+      slider.style.setProperty('--vol-fill', pct + '%');
+    }
+    updateSliderFill(savedVol);
+
     // Volume Slider
     slider.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
       audio.volume = val;
       savedVol = val;
       localStorage.setItem('ssempire_bgm_vol', val);
+      updateSliderFill(val);
 
       if (val === 0) {
         iconHigh.style.display = 'none';
@@ -177,12 +184,14 @@
       if (audio.volume > 0) {
         audio.volume = 0;
         slider.value = 0;
+        updateSliderFill(0);
         iconHigh.style.display = 'none';
         iconMuted.style.display = 'block';
       } else {
         const restore = savedVol > 0 ? savedVol : DEFAULT_VOL;
         audio.volume = restore;
         slider.value = restore;
+        updateSliderFill(restore);
         iconHigh.style.display = 'block';
         iconMuted.style.display = 'none';
       }
