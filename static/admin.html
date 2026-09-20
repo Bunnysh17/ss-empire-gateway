@@ -238,7 +238,7 @@
           <!-- Main Base URL Box -->
           <div style="margin-bottom:18px;">
             <span style="font-size:0.82rem; font-weight:600; color:#ffffff; display:block; margin-bottom:6px;">
-              🌐 <b>Render Base URL</b> (Apne Discord Bot, Telegram Bot ya Code me ye daalna hai):
+              🌐 <b>Render Permanent Base URL</b> (Use this in your Discord Bot, Telegram Bot, or Backend App):
             </span>
             <div style="display:flex; gap:8px; align-items:center;">
               <input type="text" readonly value="https://ss-empire-gateway.onrender.com" class="copy-field" id="cloudBaseUrl" style="background:#08090c; border:1.5px solid rgba(0,230,118,0.45); border-radius:8px; padding:12px 14px; font-family:'JetBrains Mono',monospace; color:#00e676; font-size:0.95rem; font-weight:700; flex:1;">
@@ -249,12 +249,12 @@
           <!-- Direct API Endpoint Links with 1-Click Copy -->
           <div style="display:flex; flex-direction:column; gap:12px; background:rgba(0,0,0,0.3); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
             <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">
-              ⚡ Direct API URL Links (Copy karke seedha use karein):
+              ⚡ Direct API URL Endpoints (Ready to copy & integrate):
             </span>
 
             <div>
               <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px;">
-                <span style="color:#ffffff; font-weight:600;">1. Order & QR Banane Ke Liye API:</span>
+                <span style="color:#ffffff; font-weight:600;">1. Create Dynamic UPI QR & Order API:</span>
                 <span style="color:#00e676; font-family:monospace; font-weight:700;">POST</span>
               </div>
               <div style="display:flex; gap:8px;">
@@ -265,7 +265,7 @@
 
             <div>
               <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px;">
-                <span style="color:#ffffff; font-weight:600;">2. Payment Status Check Karne Ke Liye API:</span>
+                <span style="color:#ffffff; font-weight:600;">2. Check Payment Status & Bank UTR API:</span>
                 <span style="color:#ffab00; font-family:monospace; font-weight:700;">POST</span>
               </div>
               <div style="display:flex; gap:8px;">
@@ -276,7 +276,7 @@
 
             <div>
               <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px;">
-                <span style="color:#ffffff; font-weight:600;">3. Customer Payment Checkout Page Link:</span>
+                <span style="color:#ffffff; font-weight:600;">3. Direct Customer Payment Checkout Portal:</span>
                 <span style="color:#00b0ff; font-family:monospace; font-weight:700;">GET</span>
               </div>
               <div style="display:flex; gap:8px;">
@@ -286,12 +286,12 @@
             </div>
           </div>
 
-          <!-- Easy Step Instructions in Hindi/Hinglish -->
+          <!-- Easy Step Instructions in Professional English -->
           <div style="margin-top:14px; padding:12px 14px; background:rgba(255,23,68,0.06); border-left:3px solid #ff1744; border-radius:6px; font-size:0.8rem; line-height:1.6; color:#e2e8f0;">
-            <b style="color:#ff5252;">💡 Bot ya App me kaise connect karein?</b><br>
-            • <b>Step 1:</b> Apne Discord Bot / Telegram Bot code me <code>BASE_URL = "https://ss-empire-gateway.onrender.com"</code> daalein.<br>
-            • <b>Step 2:</b> User jab <code>!pay 100</code> kare, to <code>/api/create-order</code> par amount bhejein — waha se dynamic QR code milega.<br>
-            • <b>Step 3:</b> Background me <code>/api/check-status</code> se check karte rahein, jaise hi payment ho jayegi Bank UTR mil jayega aur bot access unlock kar dega!
+            <b style="color:#ff5252;">💡 How to Connect with Bots or Web Apps:</b><br>
+            • <b>Step 1:</b> In your Discord Bot, Telegram Bot, or backend code, set <code>BASE_URL = "https://ss-empire-gateway.onrender.com"</code>.<br>
+            • <b>Step 2:</b> When a user initiates a payment (e.g. <code>!pay 100</code>), send a POST request with the amount to <code>/api/create-order</code> to receive the dynamic QR code image URL.<br>
+            • <b>Step 3:</b> Poll <code>/api/check-status</code> every 3 seconds to verify payment in real-time. Upon SUCCESS, retrieve the 12-digit Bank UTR and grant role/access automatically!
           </div>
         </div>
 
