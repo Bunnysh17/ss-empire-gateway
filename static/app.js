@@ -110,30 +110,61 @@ function initTabs() {
   });
 }
 
-/* Quick Amount Chips */
+/* Quick Amount Chips & Live Amount Handling */
 function initAmountChips() {
-  document.querySelectorAll('.amount-chip').forEach(chip => {
+  const chips = document.querySelectorAll('.amount-chip');
+  const amountInput = document.getElementById('custAmount');
+  const payBtnText = document.getElementById('btnPayText');
+
+  chips.forEach(chip => {
     chip.addEventListener('click', () => {
-      document.getElementById('custAmount').value = chip.dataset.val;
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const val = chip.dataset.val;
+      if (amountInput) {
+        amountInput.value = val;
+      }
+      if (payBtnText) {
+        payBtnText.textContent = `Pay ₹${val} with UPI`;
+      }
     });
   });
+
+  if (amountInput) {
+    amountInput.addEventListener('input', () => {
+      const val = amountInput.value.trim();
+      chips.forEach(c => {
+        if (c.dataset.val === val) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+      if (payBtnText) {
+        payBtnText.textContent = val && parseInt(val) > 0 ? `Pay ₹${val} with UPI` : 'Proceed to Pay';
+      }
+    });
+  }
 }
 
 /* Forms Setup */
 function initForms() {
-  // Checkout Form Submit
+  // Checkout Form Submit -> Direct Redirect to /pay
   const checkoutForm = document.getElementById('checkoutForm');
   checkoutForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnPayNow');
+    const amount = document.getElementById('custAmount')?.value || '1';
+    const remark = document.getElementById('custRemark')?.value || 'Service Payment';
+
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner" style="width:18px; height:18px;"></span> Generating Order & QR...`;
+    btn.innerHTML = `<span class="spinner" style="width:18px; height:18px; display:inline-block; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px;"></span> Opening Secure Checkout...`;
 
     const payload = {
-      customer_name: document.getElementById('custName').value,
-      customer_mobile: document.getElementById('custMobile').value,
-      amount: document.getElementById('custAmount').value,
-      remark: document.getElementById('custRemark').value
+      customer_name: 'Direct Customer',
+      customer_mobile: '9876543210',
+      amount: amount,
+      remark: remark
     };
 
     try {
@@ -144,18 +175,13 @@ function initForms() {
       });
       const data = await resp.json();
 
-      btn.disabled = false;
-      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg> Generate UPI QR & Pay Now`;
-
-      if (data.success) {
-        openPaymentModal(data);
+      if (data.success && data.order_id) {
+        window.location.href = `/pay?id=${encodeURIComponent(data.order_id)}&amount=${encodeURIComponent(amount)}&desc=${encodeURIComponent(remark)}`;
       } else {
-        showToast(data.message || 'Error creating order', 'error');
+        window.location.href = `/pay?amount=${encodeURIComponent(amount)}&desc=${encodeURIComponent(remark)}`;
       }
     } catch (err) {
-      btn.disabled = false;
-      btn.innerHTML = `Generate UPI QR & Pay Now`;
-      showToast('Network error while creating payment order', 'error');
+      window.location.href = `/pay?amount=${encodeURIComponent(amount)}&desc=${encodeURIComponent(remark)}`;
     }
   });
 

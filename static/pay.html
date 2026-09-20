@@ -755,6 +755,15 @@
         </div>
       </div>
 
+      <!-- UTR Verification Box -->
+      <div class="utr-box" style="margin: 12px 18px 6px; padding: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 23, 68, 0.2); border-radius: 10px; text-align: left;">
+        <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Paid via QR? Enter 12-digit UTR:</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="payUtrInput" placeholder="e.g. 426189123456" maxlength="12" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 8px 10px; color: #fff; font-family: monospace; font-size: 13px; outline: none;">
+          <button type="button" id="btnPayVerifyUtr" style="background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap;">Verify</button>
+        </div>
+      </div>
+
       <div class="footer">
         <div class="secured-by">
           <i class="fas fa-shield-alt"></i> Secured by UPI
@@ -997,6 +1006,42 @@
         }
       } catch (e) {}
     }
+
+    document.getElementById('btnPayVerifyUtr')?.addEventListener('click', async () => {
+      const utr = document.getElementById('payUtrInput')?.value.trim();
+      if (!utr || utr.length < 10) {
+        alert("Please enter a valid 12-digit UTR / Ref number");
+        return;
+      }
+      const btn = document.getElementById('btnPayVerifyUtr');
+      btn.disabled = true;
+      btn.textContent = "Verifying...";
+      try {
+        const resp = await fetch('/api/verify-utr', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ order_id: currentOrderId, utr: utr })
+        });
+        const data = await resp.json();
+        btn.disabled = false;
+        btn.textContent = "Verify";
+        if (data.success) {
+          paymentProcessed = true;
+          clearInterval(pollInterval);
+          document.getElementById('receiptAmount').textContent = '₹' + (data.order?.amount || paramAmount);
+          document.getElementById('receiptOrderId').textContent = currentOrderId;
+          document.getElementById('receiptUtr').textContent = utr;
+          document.getElementById('successOverlay').classList.add('active');
+          try { confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } }); } catch(e) {}
+        } else {
+          alert(data.message || "UTR Verification failed");
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = "Verify";
+        alert("Error verifying UTR");
+      }
+    });
 
     initCheckout();
   </script>

@@ -3,16 +3,365 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SS EMPIRE PAYMENT GATEWAY</title>
+  <title>SS EMPIRE PAYMENT GATEWAY - Instant UPI Checkout</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <!-- QRCode.js Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Canvas Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    /* Tagda / Ultra-Premium Hero Payment Card Styles */
+    .hero-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 90px);
+      padding: 30px 20px 60px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .gateway-card {
+      width: 100%;
+      max-width: 490px;
+      background: rgba(12, 16, 26, 0.85);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 23, 68, 0.28);
+      border-radius: 24px;
+      box-shadow: 
+        0 25px 60px -15px rgba(0, 0, 0, 0.9),
+        0 0 50px -10px rgba(255, 23, 68, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      padding: 34px 30px;
+      position: relative;
+      overflow: hidden;
+      animation: cardEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardEntrance {
+      0% { opacity: 0; transform: translateY(24px) scale(0.97); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-top-glow {
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ff1744, #ff5252, #ff1744, transparent);
+      box-shadow: 0 0 20px #ff1744;
+    }
+
+    .gateway-card-header {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 14px;
+      border-radius: 50px;
+      background: rgba(255, 23, 68, 0.12);
+      border: 1px solid rgba(255, 23, 68, 0.35);
+      color: #ff5252;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .card-badge .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00e676;
+      box-shadow: 0 0 10px #00e676;
+      animation: pulseGreen 1.8s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.7; }
+    }
+
+    .gateway-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .gateway-title span {
+      background: linear-gradient(135deg, #ff1744 0%, #ff5252 50%, #ff8a80 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gateway-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    /* Big Amount Display & Input */
+    .amount-input-box {
+      background: rgba(6, 8, 14, 0.75);
+      border: 2px solid rgba(255, 23, 68, 0.25);
+      border-radius: 18px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+      margin-bottom: 16px;
+    }
+
+    .amount-input-box:focus-within {
+      border-color: #ff1744;
+      box-shadow: 0 0 25px rgba(255, 23, 68, 0.35), inset 0 2px 8px rgba(0, 0, 0, 0.5);
+      background: rgba(10, 13, 22, 0.9);
+    }
+
+    .amount-symbol {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ff1744;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .amount-field {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .amount-field::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Preset Quick Amount Chips */
+    .amount-chips-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    .amount-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 9px 4px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+    }
+
+    .amount-chip:hover {
+      background: rgba(255, 23, 68, 0.12);
+      border-color: rgba(255, 23, 68, 0.45);
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    .amount-chip.active {
+      background: linear-gradient(135deg, #ff1744, #d50000);
+      border-color: #ff1744;
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(255, 23, 68, 0.45);
+      transform: translateY(-2px);
+    }
+
+    /* Purpose / Note input */
+    .field-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .note-input-box {
+      background: rgba(6, 8, 14, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+
+    .note-input-box:focus-within {
+      border-color: rgba(255, 23, 68, 0.6);
+      background: rgba(10, 13, 22, 0.85);
+      box-shadow: 0 0 16px rgba(255, 23, 68, 0.2);
+    }
+
+    .note-field {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 0.92rem;
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .note-field::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Big Glowing Pay Button */
+    .btn-pay-hero {
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ff1744 0%, #ff5252 50%, #b71c1c 100%);
+      color: #ffffff;
+      font-size: 1.08rem;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 10px 35px rgba(255, 23, 68, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-pay-hero:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 45px rgba(255, 23, 68, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .btn-pay-hero:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 20px rgba(255, 23, 68, 0.4);
+    }
+
+    .btn-pay-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      animation: buttonShimmer 3s infinite;
+    }
+
+    @keyframes buttonShimmer {
+      0% { left: -100%; }
+      50%, 100% { left: 100%; }
+    }
+
+    /* Supported Apps Banner */
+    .apps-strip {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+    }
+
+    .apps-title {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .apps-icons-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .app-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .app-pill:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Trust Highlights */
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 28px;
+      width: 100%;
+      max-width: 490px;
+    }
+
+    .trust-item {
+      background: rgba(12, 16, 26, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .trust-item svg {
+      color: #ff5252;
+    }
+
+    .trust-item span {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+  </style>
 </head>
 <body>
 
@@ -26,7 +375,7 @@
 
   <!-- Navbar -->
   <header class="navbar">
-    <a href="#" class="brand">
+    <a href="/" class="brand">
       <img src="logo.png" alt="SS EMPIRE" class="brand-logo-img">
       <div class="brand-text">
         <h1>SS EMPIRE PAYMENT GATEWAY</h1>
@@ -36,172 +385,128 @@
     <div class="nav-actions">
       <div class="api-status-badge" id="apiStatusBadge">
         <div class="status-dot" id="apiStatusDot"></div>
-        <span id="apiStatusText">Live</span>
+        <span id="apiStatusText">Live Gateway</span>
       </div>
+      <a href="/admin" class="btn btn-secondary btn-sm" style="text-decoration:none; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Admin
+      </a>
     </div>
   </header>
 
-  <!-- Main Content - Payment Only -->
-  <main class="main-wrapper">
+  <!-- Main Hero Payment Container -->
+  <main class="hero-container">
 
-    <section class="tab-panel active" id="panel-checkout">
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2 class="card-title">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-              Generate Payment
-            </h2>
-            <p class="card-subtitle">Enter details below to create a live UPI QR code</p>
-          </div>
+    <div class="gateway-card">
+      <div class="card-top-glow"></div>
+
+      <div class="gateway-card-header">
+        <div class="card-badge">
+          <span class="pulse-dot"></span>
+          Instant UPI Engine 2.0
+        </div>
+        <h2 class="gateway-title">Quick <span>Pay</span></h2>
+        <p class="gateway-subtitle">Direct scan & pay with any UPI application</p>
+      </div>
+
+      <form id="checkoutForm">
+        <!-- Amount Input -->
+        <label class="field-label" for="custAmount">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Enter Amount (INR)
+        </label>
+        
+        <div class="amount-input-box">
+          <span class="amount-symbol">₹</span>
+          <input 
+            type="number" 
+            id="custAmount" 
+            class="amount-field" 
+            min="1" 
+            step="1" 
+            value="100" 
+            placeholder="0"
+            required
+            autocomplete="off"
+          >
         </div>
 
-        <form id="checkoutForm" class="form-grid">
-          <div class="form-group">
-            <label for="custName">Customer Name</label>
-            <input type="text" id="custName" placeholder="Enter Customer Name" value="Rahul Sharma" required>
-          </div>
+        <!-- Preset Quick Amount Chips -->
+        <div class="amount-chips-grid">
+          <button type="button" class="amount-chip" data-val="1">₹1</button>
+          <button type="button" class="amount-chip" data-val="10">₹10</button>
+          <button type="button" class="amount-chip" data-val="50">₹50</button>
+          <button type="button" class="amount-chip active" data-val="100">₹100</button>
+          <button type="button" class="amount-chip" data-val="250">₹250</button>
+          <button type="button" class="amount-chip" data-val="500">₹500</button>
+          <button type="button" class="amount-chip" data-val="1000">₹1,000</button>
+          <button type="button" class="amount-chip" data-val="2000">₹2,000</button>
+        </div>
 
-          <div class="form-group">
-            <label for="custMobile">Mobile Number</label>
-            <input type="tel" id="custMobile" placeholder="10 digit mobile" value="7579923536" pattern="[0-9]{10}" required>
-          </div>
+        <!-- Purpose / Remark (Optional) -->
+        <label class="field-label" for="custRemark">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Payment Note (Optional)
+        </label>
+        <div class="note-input-box">
+          <input 
+            type="text" 
+            id="custRemark" 
+            class="note-field" 
+            placeholder="e.g. VIP Subscription, Order #123"
+            value="Service Payment"
+          >
+        </div>
 
-          <div class="form-group">
-            <label for="custAmount">Payment Amount (INR)</label>
-            <div class="input-wrapper">
-              <span class="input-prefix">₹</span>
-              <input type="number" id="custAmount" class="has-prefix" min="1" step="1" value="1" required>
-            </div>
-            <div style="display:flex; gap:8px; margin-top:8px;">
-              <button type="button" class="btn btn-secondary btn-sm amount-chip" data-val="1">₹1</button>
-              <button type="button" class="btn btn-secondary btn-sm amount-chip" data-val="10">₹10</button>
-              <button type="button" class="btn btn-secondary btn-sm amount-chip" data-val="50">₹50</button>
-              <button type="button" class="btn btn-secondary btn-sm amount-chip" data-val="100">₹100</button>
-              <button type="button" class="btn btn-secondary btn-sm amount-chip" data-val="500">₹500</button>
-            </div>
-          </div>
+        <!-- Submit Button -->
+        <button type="submit" class="btn-pay-hero" id="btnPayNow">
+          <span id="btnPayText">Pay ₹100 with UPI</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </form>
 
-          <div class="form-group">
-            <label for="custRemark">Payment Note / Purpose</label>
-            <input type="text" id="custRemark" placeholder="e.g. VIP Subscription" value="Service Payment">
+      <!-- Supported Apps -->
+      <div class="apps-strip">
+        <div class="apps-title">Supported UPI Applications</div>
+        <div class="apps-icons-row">
+          <div class="app-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#00e676"><circle cx="12" cy="12" r="10"/></svg>
+            Google Pay
           </div>
-
-          <div class="form-group full-width" style="margin-top: 10px;">
-            <button type="submit" class="btn btn-primary" id="btnPayNow" style="width: 100%;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-              Generate UPI QR & Pay Now
-            </button>
+          <div class="app-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#7000ff"><circle cx="12" cy="12" r="10"/></svg>
+            PhonePe
           </div>
-        </form>
+          <div class="app-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#00b0ff"><circle cx="12" cy="12" r="10"/></svg>
+            Paytm
+          </div>
+          <div class="app-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffab00"><circle cx="12" cy="12" r="10"/></svg>
+            BHIM UPI
+          </div>
+        </div>
       </div>
-    </section>
+
+    </div>
+
+    <!-- Trust Highlights -->
+    <div class="trust-grid">
+      <div class="trust-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>256-Bit SSL Encrypted</span>
+      </div>
+      <div class="trust-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Instant Verification</span>
+      </div>
+      <div class="trust-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        <span>0% Additional Fee</span>
+      </div>
+    </div>
 
   </main>
-
-  <!-- Payment Modal -->
-  <div class="modal-backdrop" id="paymentModal">
-    <div class="payment-modal">
-      <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
-      
-      <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px;">
-        <img src="logo.png" alt="SS EMPIRE" style="width:38px; height:38px; border-radius:8px; box-shadow:0 0 18px rgba(255,23,68,0.5); border:1px solid rgba(255,23,68,0.3);">
-        <span style="font-weight:800; font-size:1.1rem; letter-spacing:0.5px; background:linear-gradient(135deg,#fff,#ff5252); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">SS EMPIRE GATEWAY</span>
-      </div>
-
-      <div class="payment-amount-box">
-        <div class="amount-label">Amount to Pay</div>
-        <div class="amount-value"><span>₹</span><span id="modalAmount">1</span></div>
-        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;" id="modalOrderId">TXN000000</div>
-      </div>
-
-      <!-- Dynamic QR Code -->
-      <div class="qr-box" id="modalQrCode"></div>
-
-      <!-- Countdown Timer -->
-      <div class="timer-box">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Expires in <strong id="modalTimer">10:00</strong></span>
-      </div>
-
-      <!-- Direct Standalone Checkout Page Button -->
-      <a href="#" target="_blank" class="btn btn-secondary" id="btnOpenTerminalxCheckout" style="display:none; width:100%; margin:10px 0; font-size:0.88rem; text-decoration:none; justify-content:center; gap:8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Open Fullscreen Payment Page
-      </a>
-
-      <!-- UPI Intent Buttons for Mobile -->
-      <div class="upi-app-buttons">
-        <a href="#" class="upi-btn" id="btnGpay">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#00f0ff"><circle cx="12" cy="12" r="10"/></svg>
-          Google Pay
-        </a>
-        <a href="#" class="upi-btn" id="btnPhonepe">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#7000ff"><circle cx="12" cy="12" r="10"/></svg>
-          PhonePe
-        </a>
-        <a href="#" class="upi-btn" id="btnPaytm">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#00b0ff"><circle cx="12" cy="12" r="10"/></svg>
-          Paytm
-        </a>
-      </div>
-
-      <!-- Bank Savings Account Tip -->
-      <div style="background: rgba(255, 171, 0, 0.08); border: 1px solid rgba(255, 171, 0, 0.25); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 0.76rem; color: #ffc107; display: flex; align-items: center; gap: 8px; text-align: left;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span><strong>Note:</strong> Please pay using <strong>Bank Savings Account</strong>. Credit Cards on UPI and Wallets are not supported by Paytm merchant.</span>
-      </div>
-
-      <!-- Polling Status -->
-      <div class="polling-indicator">
-        <div class="spinner"></div>
-        <span id="pollingStatusText">Awaiting your payment confirmation...</span>
-      </div>
-
-      <!-- Real UTR Verification Box -->
-      <div class="utr-verify-box" style="margin-top:16px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:var(--radius-sm); text-align:left;">
-        <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:6px; text-transform:none;">Paid? Enter 12-digit UTR / Ref No. to verify:</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="utrInput" placeholder="e.g. 426189123456" maxlength="12" style="padding:9px 12px; font-size:0.88rem; font-family:monospace;">
-          <button class="btn btn-success btn-sm" id="btnVerifyUtr" style="white-space:nowrap; padding:9px 14px;">Verify UTR</button>
-        </div>
-      </div>
-
-
-    </div>
-  </div>
-
-  <!-- Success Receipt Modal -->
-  <div class="modal-backdrop" id="successModal">
-    <div class="payment-modal success-card">
-      <div class="success-icon-wrap">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3" fill="none"/></svg>
-      </div>
-      <h2 style="font-size:1.5rem; color:#fff; font-weight:800;">Payment Successful!</h2>
-      <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">Your transaction has been verified</p>
-
-      <div class="receipt-details">
-        <div class="receipt-row">
-          <span>Amount Paid</span>
-          <span id="receiptAmount" style="color:var(--success);">₹0.00</span>
-        </div>
-        <div class="receipt-row">
-          <span>Order ID</span>
-          <span id="receiptOrderId">-</span>
-        </div>
-        <div class="receipt-row">
-          <span>Bank Reference (UTR)</span>
-          <span id="receiptUtr">-</span>
-        </div>
-        <div class="receipt-row">
-          <span>Timestamp</span>
-          <span id="receiptDate">-</span>
-        </div>
-      </div>
-
-      <button class="btn btn-success" id="receiptCloseBtn" style="width:100%;">Done</button>
-    </div>
-  </div>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
