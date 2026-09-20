@@ -35,8 +35,10 @@ CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
 TRANSACTIONS_FILE = os.path.join(BASE_DIR, 'transactions.json')
 
 # Admin credentials
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'suyash')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'suyash@123')
+ADMIN_USERS = {
+    'suyash': os.environ.get('ADMIN_PASSWORD', 'suyash@123'),
+    'B': os.environ.get('ADMIN_PASSWORD_B', 'b1')
+}
 
 
 def login_required(f):
@@ -143,7 +145,7 @@ def api_login():
     data = request.get_json(silent=True) or request.form.to_dict() or {}
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
-    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+    if username in ADMIN_USERS and ADMIN_USERS[username] == password:
         session['admin_logged_in'] = True
         session['admin_user'] = username
         return jsonify({"success": True, "message": "Login successful"})
