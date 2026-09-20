@@ -7,13 +7,28 @@ import uuid
 from datetime import datetime
 import qrcode
 import requests
-from flask import Flask, jsonify, request, send_from_directory, send_file
+from functools import wraps
+from flask import Flask, jsonify, request, send_from_directory, send_file, session, redirect, url_for
 
 app = Flask(__name__, static_folder='static', static_url_path='')
+app.secret_key = 'ssempire_secret_key_2026_' + str(uuid.uuid4().hex[:8])
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
 TRANSACTIONS_FILE = os.path.join(BASE_DIR, 'transactions.json')
+
+# Admin credentials
+ADMIN_USERNAME = 'suyash'
+ADMIN_PASSWORD = 'suyash123'
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated
 
 
 def get_public_url():
@@ -89,7 +104,33 @@ def serve_pay():
     return send_from_directory('static', 'pay.html')
 
 
+@app.route('/login', methods=['GET'])
+def serve_login():
+    if session.get('admin_logged_in'):
+        return redirect('/admin')
+    return send_from_directory('static', 'login.html')
+
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json(silent=True) or request.form.to_dict() or {}
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        session['admin_logged_in'] = True
+        session['admin_user'] = username
+        return jsonify({"success": True, "message": "Login successful"})
+    return jsonify({"success": False, "message": "Invalid username or password"}), 401
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
+
 @app.route('/admin')
+@login_required
 def serve_admin():
     return send_from_directory('static', 'admin.html')
 
