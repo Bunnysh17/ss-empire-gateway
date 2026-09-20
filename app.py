@@ -4,6 +4,7 @@ import os
 import re
 import time
 import uuid
+import threading
 from datetime import datetime
 import qrcode
 import requests
@@ -12,6 +13,22 @@ from flask import Flask, jsonify, request, send_from_directory, send_file, sessi
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.secret_key = 'ssempire_secret_key_2026_' + str(uuid.uuid4().hex[:8])
+
+# 24/7 Keep-Alive Background Pinger for Render
+def start_keep_alive():
+    def pinger():
+        time.sleep(30)
+        while True:
+            render_url = os.environ.get('RENDER_EXTERNAL_URL', 'https://ss-empire-gateway.onrender.com')
+            try:
+                requests.get(f"{render_url.rstrip('/')}/health", timeout=10)
+            except Exception:
+                pass
+            time.sleep(600)  # Ping every 10 minutes to prevent sleep
+    t = threading.Thread(target=pinger, daemon=True)
+    t.start()
+
+start_keep_alive()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
@@ -97,6 +114,16 @@ def get_transaction(order_id):
 @app.route('/')
 def serve_index():
     return send_from_directory('static', 'index.html')
+
+
+@app.route('/health')
+@app.route('/ping')
+def health_check():
+    return jsonify({
+        "status": "online",
+        "service": "SS EMPIRE PAYMENT GATEWAY",
+        "timestamp": datetime.now().isoformat()
+    }), 200
 
 
 @app.route('/pay')
