@@ -37,7 +37,8 @@ TRANSACTIONS_FILE = os.path.join(BASE_DIR, 'transactions.json')
 # Admin credentials
 ADMIN_USERS = {
     'suyash': os.environ.get('ADMIN_PASSWORD', 'suyash@123'),
-    'B': os.environ.get('ADMIN_PASSWORD_B', 'b1')
+    'B': os.environ.get('ADMIN_PASSWORD_B', 'b1'),
+    'b': os.environ.get('ADMIN_PASSWORD_B', 'b1')
 }
 
 
@@ -145,10 +146,12 @@ def api_login():
     data = request.get_json(silent=True) or request.form.to_dict() or {}
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
-    if username in ADMIN_USERS and ADMIN_USERS[username] == password:
-        session['admin_logged_in'] = True
-        session['admin_user'] = username
-        return jsonify({"success": True, "message": "Login successful"})
+    # Case-insensitive username matching (accepts both 'B' and 'b')
+    for u, p in ADMIN_USERS.items():
+        if u.lower() == username.lower() and p == password:
+            session['admin_logged_in'] = True
+            session['admin_user'] = u
+            return jsonify({"success": True, "message": "Login successful"})
     return jsonify({"success": False, "message": "Invalid username or password"}), 401
 
 
