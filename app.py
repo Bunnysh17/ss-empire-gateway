@@ -35,8 +35,8 @@ CONFIG_FILE = os.path.join(BASE_DIR, 'config.json')
 TRANSACTIONS_FILE = os.path.join(BASE_DIR, 'transactions.json')
 
 # Admin credentials
-ADMIN_USERNAME = 'suyash'
-ADMIN_PASSWORD = 'suyash123'
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'suyash')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'suyash@123')
 
 
 def login_required(f):
