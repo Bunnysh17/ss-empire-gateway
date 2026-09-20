@@ -10,25 +10,54 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --rzp-blue: #3399cc;
-      --bg-color: #cdd5e0;
-      --card-bg: #ffffff;
-      --text-main: #333333;
-      --text-muted: #888888;
-      --border-color: #e2e2e2;
+      --rzp-blue: #ff1744;
+      --bg-color: #05070a;
+      --card-bg: rgba(14, 17, 26, 0.82);
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.1);
     }
     body.dark-mode {
-      --bg-color: #0f1115;
-      --card-bg: #1c1f26;
+      --bg-color: #05070a;
+      --card-bg: rgba(14, 17, 26, 0.85);
       --text-main: #ffffff;
-      --text-muted: #a0a4b0;
-      --border-color: #2b303b;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255, 23, 68, 0.25);
     }
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    /* Video Background */
+    .video-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .video-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.5) contrast(1.18) saturate(1.25);
+    }
+    .video-bg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 50% 20%, rgba(255, 23, 68, 0.12) 0%, transparent 65%),
+        linear-gradient(180deg, rgba(6, 8, 14, 0.72) 0%, rgba(4, 5, 9, 0.95) 100%);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
     body {
       background: var(--bg-color);
@@ -40,6 +69,13 @@
       color: var(--text-main);
       transition: background 0.3s, color 0.3s;
       overflow-x: hidden;
+      position: relative;
+    }
+    .info-card, .checkout-card {
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid rgba(255, 23, 68, 0.2) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 23, 68, 0.15) !important;
     }
 
     /* Top Floating Pill Navbar */
@@ -602,10 +638,19 @@
 </head>
 <body>
 
+  <!-- Video Background -->
+  <div class="video-bg-container">
+    <video autoplay muted loop playsinline class="video-bg">
+      <source src="bg.mp4" type="video/mp4">
+    </video>
+    <div class="video-bg-overlay"></div>
+  </div>
+
   <!-- Top Floating Navbar -->
   <div class="top-nav">
     <div class="nav-brand">
-      <i class="fas fa-shield-alt"></i> SecurePay
+      <img src="logo.png" alt="SS EMPIRE" style="width:36px; height:36px; border-radius:8px; box-shadow:0 0 15px rgba(255,23,68,0.5); object-fit:cover;">
+      <span style="font-weight:800; letter-spacing:0.5px; background:linear-gradient(135deg,#fff,#ff5252); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">SS EMPIRE PAYMENT GATEWAY</span>
     </div>
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
       <i class="fas fa-moon" id="theme-icon"></i>
@@ -665,9 +710,10 @@
 
     <!-- Right Column: Checkout Card -->
     <div class="checkout-card">
-      <div class="header">
-        <div class="merchant-name" id="cardMerchantName">SS EMPIRE</div>
-        <div class="merchant-desc">Secure Checkout</div>
+      <div class="header" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <img src="logo.png" alt="SS EMPIRE" style="width: 52px; height: 52px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 0 25px rgba(255, 23, 68, 0.6); border: 1px solid rgba(255, 23, 68, 0.4); object-fit: cover;">
+        <div class="merchant-name" id="cardMerchantName" style="font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 40%, #ff5252 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SS EMPIRE</div>
+        <div class="merchant-desc" style="color: #ff5252; font-weight: 600; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;">Official UPI Payment Gateway</div>
       </div>
 
       <div class="content">
