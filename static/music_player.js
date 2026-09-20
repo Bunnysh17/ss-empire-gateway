@@ -1,5 +1,5 @@
 // SS EMPIRE - Floating Background Music Player
-// Track: DVRST - Dream Space
+// Featuring Suyash Logo, Instant Autoplay, No Title Text, Play/Pause, Volume Slider
 
 (function() {
   const AUDIO_SRC = 'bgm.mp3';
@@ -7,9 +7,14 @@
 
   let audio = null;
   let isPlaying = false;
-  let savedVol = parseFloat(localStorage.getItem('ssempire_bgm_vol')) || DEFAULT_VOL;
+  let savedVol = parseFloat(localStorage.getItem('ssempire_bgm_vol'));
+  if (isNaN(savedVol) || savedVol === null) {
+    savedVol = DEFAULT_VOL;
+  }
 
   function initPlayer() {
+    if (document.getElementById('bgmWidget')) return;
+
     // 1. Create Audio Element
     audio = document.createElement('audio');
     audio.id = 'ssEmpireBgm';
@@ -19,26 +24,17 @@
     audio.volume = savedVol;
     document.body.appendChild(audio);
 
-    // 2. Create Floating Widget DOM
+    // 2. Create Floating Widget DOM (Minimalist: Suyash Logo + Waves + Play/Pause + Volume)
     const widget = document.createElement('div');
     widget.className = 'bgm-floating-widget';
     widget.id = 'bgmWidget';
     widget.innerHTML = `
-      <div class="bgm-disc" id="bgmDiscBtn" title="DVRST - Dream Space">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
+      <div class="bgm-disc" id="bgmDiscBtn" title="SS EMPIRE - Suyash (Click to Toggle Music)">
+        <img src="logo.png" alt="Suyash" class="bgm-logo-img">
       </div>
 
-      <div class="bgm-info">
-        <span class="bgm-title">DVRST - Dream Space</span>
-        <div class="bgm-subtitle">
-          <span id="bgmStatusText">Playing</span>
-          <div class="bgm-waves" id="bgmWaves">
-            <span></span><span></span><span></span><span></span>
-          </div>
-        </div>
+      <div class="bgm-waves" id="bgmWaves" title="Music Status">
+        <span></span><span></span><span></span><span></span>
       </div>
 
       <button class="bgm-toggle-btn" id="bgmPlayBtn" title="Play / Pause">
@@ -82,7 +78,6 @@
     const discBtn = document.getElementById('bgmDiscBtn');
     const slider = document.getElementById('bgmSlider');
     const muteBtn = document.getElementById('bgmMuteBtn');
-    const statusText = document.getElementById('bgmStatusText');
     const iconPlay = document.getElementById('iconBgmPlay');
     const iconPause = document.getElementById('iconBgmPause');
     const iconHigh = document.getElementById('iconVolHigh');
@@ -94,12 +89,10 @@
         widget.classList.add('playing');
         iconPlay.style.display = 'none';
         iconPause.style.display = 'block';
-        statusText.textContent = 'Playing';
       } else {
         widget.classList.remove('playing');
         iconPlay.style.display = 'block';
         iconPause.style.display = 'none';
-        statusText.textContent = 'Paused';
       }
     }
 
@@ -152,28 +145,34 @@
       }
     });
 
-    // 4. Auto-Play handling (respecting browser autoplay policy)
-    function attemptPlay() {
-      audio.play().then(() => {
-        updateUi(true);
-      }).catch(() => {
-        // Autoplay blocked by browser -> play on first user interaction
-        updateUi(false);
-        function onUserInteraction() {
-          audio.play().then(() => {
-            updateUi(true);
-          }).catch(() => {});
-          window.removeEventListener('click', onUserInteraction);
-          window.removeEventListener('touchstart', onUserInteraction);
-          window.removeEventListener('keydown', onUserInteraction);
-        }
-        window.addEventListener('click', onUserInteraction, { once: true });
-        window.addEventListener('touchstart', onUserInteraction, { once: true });
-        window.addEventListener('keydown', onUserInteraction, { once: true });
-      });
+    // 4. Instant Autoplay on website load + user movement triggers
+    function forceAutoplay() {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          updateUi(true);
+        }).catch(() => {
+          // If browser blocked unprompted autoplay, trigger immediately on first mouse move, scroll, touch, or click
+          updateUi(false);
+          const startOnInteraction = () => {
+            audio.play().then(() => {
+              updateUi(true);
+            }).catch(() => {});
+            ['click', 'touchstart', 'scroll', 'mousemove', 'pointerdown', 'keydown'].forEach(evt => {
+              window.removeEventListener(evt, startOnInteraction);
+              document.removeEventListener(evt, startOnInteraction);
+            });
+          };
+
+          ['click', 'touchstart', 'scroll', 'mousemove', 'pointerdown', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, startOnInteraction, { once: true, passive: true });
+            document.addEventListener(evt, startOnInteraction, { once: true, passive: true });
+          });
+        });
+      }
     }
 
-    attemptPlay();
+    forceAutoplay();
   }
 
   if (document.readyState === 'loading') {
