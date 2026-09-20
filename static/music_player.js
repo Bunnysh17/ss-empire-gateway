@@ -1,5 +1,5 @@
 // SS EMPIRE - Floating Background Music Player
-// Featuring Suyash Logo, Instant Autoplay, No Title Text, Play/Pause, Volume Slider
+// Featuring Suyash Logo (Always Spinning), Hover to Expand Volume Drawer, Autoplay
 
 (function() {
   const AUDIO_SRC = 'bgm.mp3';
@@ -24,51 +24,55 @@
     audio.volume = savedVol;
     document.body.appendChild(audio);
 
-    // 2. Create Floating Widget DOM (Minimalist: Suyash Logo + Waves + Play/Pause + Volume)
+    // 2. Create Floating Widget DOM
+    // Collapsed by default: Only the spinning Suyash disc is visible
+    // Hover/Touch: Expands the controls drawer revealing waves, play/pause, mute, and glowing red volume slider
     const widget = document.createElement('div');
     widget.className = 'bgm-floating-widget';
     widget.id = 'bgmWidget';
     widget.innerHTML = `
-      <div class="bgm-disc" id="bgmDiscBtn" title="SS EMPIRE - Suyash (Click to Toggle Music)">
+      <div class="bgm-disc" id="bgmDiscBtn" title="SS EMPIRE - Suyash (Click to Toggle Play)">
         <img src="logo.png" alt="Suyash" class="bgm-logo-img">
       </div>
 
-      <div class="bgm-waves" id="bgmWaves" title="Music Status">
-        <span></span><span></span><span></span><span></span>
-      </div>
+      <div class="bgm-controls-drawer" id="bgmDrawer">
+        <div class="bgm-waves" id="bgmWaves" title="Music Status">
+          <span></span><span></span><span></span><span></span>
+        </div>
 
-      <button class="bgm-toggle-btn" id="bgmPlayBtn" title="Play / Pause">
-        <svg id="iconBgmPlay" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <svg id="iconBgmPause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="4" width="4" height="16"></rect>
-          <rect x="14" y="4" width="4" height="16"></rect>
-        </svg>
-      </button>
-
-      <div class="bgm-vol-wrap">
-        <button class="bgm-mute-btn" id="bgmMuteBtn" title="Mute / Unmute">
-          <svg id="iconVolHigh" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <button class="bgm-toggle-btn" id="bgmPlayBtn" title="Play / Pause">
+          <svg id="iconBgmPlay" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
-          <svg id="iconVolMuted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
+          <svg id="iconBgmPause" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
           </svg>
         </button>
-        <input 
-          type="range" 
-          id="bgmSlider" 
-          class="bgm-vol-slider" 
-          min="0" 
-          max="1" 
-          step="0.01" 
-          value="${savedVol}" 
-          title="Volume Control"
-        >
+
+        <div class="bgm-vol-wrap">
+          <button class="bgm-mute-btn" id="bgmMuteBtn" title="Mute / Unmute">
+            <svg id="iconVolHigh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <svg id="iconVolMuted" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+          <input 
+            type="range" 
+            id="bgmSlider" 
+            class="bgm-vol-slider" 
+            min="0" 
+            max="1" 
+            step="0.01" 
+            value="${savedVol}" 
+            title="Volume Control"
+          >
+        </div>
       </div>
     `;
     document.body.appendChild(widget);
@@ -107,8 +111,46 @@
       }
     }
 
-    playBtn.addEventListener('click', togglePlay);
-    discBtn.addEventListener('click', togglePlay);
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePlay();
+    });
+
+    // Disc click behavior:
+    // On desktop: toggles play/pause
+    // On mobile / touch: toggles expanded drawer
+    discBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (window.matchMedia('(hover: none)').matches) {
+        widget.classList.toggle('expanded');
+      } else {
+        togglePlay();
+      }
+    });
+
+    // Slider Drag protection (keep open while dragging slider even if pointer moves outside)
+    let isDraggingSlider = false;
+    slider.addEventListener('mousedown', () => { isDraggingSlider = true; });
+    slider.addEventListener('touchstart', () => { isDraggingSlider = true; }, { passive: true });
+
+    window.addEventListener('mouseup', () => {
+      if (isDraggingSlider) {
+        isDraggingSlider = false;
+        if (!widget.matches(':hover')) {
+          widget.classList.remove('expanded');
+        }
+      }
+    });
+    window.addEventListener('touchend', () => {
+      isDraggingSlider = false;
+    });
+
+    // Click outside to collapse on touch devices
+    document.addEventListener('click', (e) => {
+      if (!widget.contains(e.target)) {
+        widget.classList.remove('expanded');
+      }
+    });
 
     // Volume Slider
     slider.addEventListener('input', (e) => {
@@ -130,7 +172,8 @@
     });
 
     // Mute Toggle
-    muteBtn.addEventListener('click', () => {
+    muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (audio.volume > 0) {
         audio.volume = 0;
         slider.value = 0;
@@ -171,10 +214,10 @@
         });
       }
 
-      // 1. Try playing immediately on page load
+      // Try playing immediately on page load
       tryPlay();
 
-      // 2. Intercept ANY click or touch anywhere on the page immediately
+      // Intercept ANY click or touch anywhere on the page immediately
       const events = ['click', 'pointerdown', 'mousedown', 'touchstart', 'touchend', 'keydown'];
       events.forEach(evt => {
         document.addEventListener(evt, onFirstUserGesture, { capture: true });
