@@ -68,6 +68,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         API & Settings
       </button>
+      <button class="tab-btn" data-tab="apidocs">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        API & Bot SDK
+      </button>
     </div>
   </div>
 
@@ -201,6 +205,413 @@
           <h4 style="font-size:0.95rem; margin-bottom:10px; color:var(--primary);">TerminalX Live API Response:</h4>
           <pre id="diagnosticsOutput" style="font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:#f5f7fa; background:rgba(255,255,255,0.02); padding:14px; border-radius:6px; overflow-x:auto;"></pre>
         </div>
+      </div>
+    <!-- Tab 4: Developer API & Bot SDK -->
+    <section class="tab-panel" id="panel-apidocs">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,230,118,0.12); border:1px solid rgba(0,230,118,0.3); padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700; color:#00e676; text-transform:uppercase; margin-bottom:8px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#00e676; box-shadow:0 0 8px #00e676;"></span>
+              24/7 Cloud API Live
+            </div>
+            <h2 class="card-title">Developer API & Bot SDK Integration</h2>
+            <p class="card-subtitle">Connect SS EMPIRE Gateway with Discord Bots, Telegram Bots, Python, Java, Node.js, PHP, and Web Apps</p>
+          </div>
+        </div>
+
+        <!-- Base URLs Box -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,23,68,0.25); border-radius:14px; padding:18px; margin-bottom:24px;">
+          <div style="font-size:0.8rem; font-weight:700; color:#ff5252; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Permanent Gateway Base URLs
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Permanent 24/7 Cloud URL (Recommended for Bots & Live Web Apps):</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" readonly value="https://ss-empire-gateway.onrender.com" class="copy-field" id="cloudBaseUrl" style="background:#08090c; border:1px solid var(--border-color); border-radius:8px; padding:10px 14px; font-family:'JetBrains Mono',monospace; color:#00e676; font-size:0.9rem; flex:1;">
+                <button type="button" class="btn btn-secondary btn-sm btn-copy-api" data-target="cloudBaseUrl">📋 Copy</button>
+              </div>
+            </div>
+            <div>
+              <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Local Development URL (For Local Testing on PC):</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" readonly value="http://127.0.0.1:5000" class="copy-field" id="localBaseUrl" style="background:#08090c; border:1px solid var(--border-color); border-radius:8px; padding:10px 14px; font-family:'JetBrains Mono',monospace; color:var(--text-secondary); font-size:0.9rem; flex:1;">
+                <button type="button" class="btn btn-secondary btn-sm btn-copy-api" data-target="localBaseUrl">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Endpoints Cheat Sheet -->
+        <div style="margin-bottom:24px;">
+          <h3 style="font-size:1rem; font-weight:700; color:#fff; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Gateway Endpoints Summary
+          </h3>
+          <div style="overflow-x:auto;">
+            <table class="table" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+              <thead>
+                <tr>
+                  <th style="padding:10px; text-align:left; border-bottom:1px solid var(--border-color); color:var(--text-muted);">Method</th>
+                  <th style="padding:10px; text-align:left; border-bottom:1px solid var(--border-color); color:var(--text-muted);">Endpoint</th>
+                  <th style="padding:10px; text-align:left; border-bottom:1px solid var(--border-color); color:var(--text-muted);">Description</th>
+                  <th style="padding:10px; text-align:left; border-bottom:1px solid var(--border-color); color:var(--text-muted);">Key Parameters</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:10px;"><span class="badge badge-success" style="font-size:0.7rem;">POST</span></td>
+                  <td style="padding:10px; font-family:monospace; color:#00e676;">/api/create-order</td>
+                  <td style="padding:10px;">Creates live UPI order, returns QR image URL & deep links</td>
+                  <td style="padding:10px; font-family:monospace; font-size:0.75rem;">amount, customer_name, remark</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px;"><span class="badge badge-success" style="font-size:0.7rem;">POST</span></td>
+                  <td style="padding:10px; font-family:monospace; color:#ffab00;">/api/check-status</td>
+                  <td style="padding:10px;">Polls status (SUCCESS/PENDING) & returns 12-digit Bank UTR</td>
+                  <td style="padding:10px; font-family:monospace; font-size:0.75rem;">order_id</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px;"><span class="badge badge-pending" style="font-size:0.7rem;">GET</span></td>
+                  <td style="padding:10px; font-family:monospace; color:#00b0ff;">/api/qr-image/&lt;order_id&gt;</td>
+                  <td style="padding:10px;">Direct PNG image of QR for Discord/Telegram image embeds</td>
+                  <td style="padding:10px; font-family:monospace; font-size:0.75rem;">order_id in URL path</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px;"><span class="badge badge-success" style="font-size:0.7rem;">POST</span></td>
+                  <td style="padding:10px; font-family:monospace; color:#ff5252;">/api/verify-utr</td>
+                  <td style="padding:10px;">Verify payment manually via customer's 12-digit UPI UTR</td>
+                  <td style="padding:10px; font-family:monospace; font-size:0.75rem;">order_id, utr (12 digits)</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px;"><span class="badge badge-pending" style="font-size:0.7rem;">GET</span></td>
+                  <td style="padding:10px; font-family:monospace; color:#94a3b8;">/health</td>
+                  <td style="padding:10px;">Keep-Alive health check (returns status online)</td>
+                  <td style="padding:10px; font-family:monospace; font-size:0.75rem;">None</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Code Snippets by Language -->
+        <div style="margin-top:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+            <h3 style="font-size:1rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              Integration Code by Language & Bots
+            </h3>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnCopyActiveCode" style="gap:6px;">
+              📋 Copy Current Code
+            </button>
+          </div>
+
+          <!-- Language Tabs -->
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;" id="sdkTabGroup">
+            <button type="button" class="btn btn-primary btn-sm sdk-tab-btn active" data-sdk="python">🐍 Python</button>
+            <button type="button" class="btn btn-secondary btn-sm sdk-tab-btn" data-sdk="discord">🤖 Discord Bot</button>
+            <button type="button" class="btn btn-secondary btn-sm sdk-tab-btn" data-sdk="telegram">✈️ Telegram Bot</button>
+            <button type="button" class="btn btn-secondary btn-sm sdk-tab-btn" data-sdk="java">☕ Java</button>
+            <button type="button" class="btn btn-secondary btn-sm sdk-tab-btn" data-sdk="node">⚡ Node.js</button>
+            <button type="button" class="btn btn-secondary btn-sm sdk-tab-btn" data-sdk="php">🐘 PHP</button>
+            <button type="button" class="btn btn-secondary btn-sm sdk-tab-btn" data-sdk="curl">💻 cURL</button>
+          </div>
+
+          <!-- Code Boxes -->
+          <div id="sdkCodeBoxes" style="background:#08090c; border:1px solid var(--border-color); border-radius:12px; padding:18px; position:relative; overflow:hidden;">
+            <!-- Python -->
+            <pre class="sdk-code-box" id="code-python" style="display:block; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;">import requests
+import time
+
+BASE_URL = "https://ss-empire-gateway.onrender.com"
+
+# 1. Create Order & Generate Dynamic UPI QR
+order_payload = {
+    "amount": "100",               # Amount in INR
+    "customer_name": "John Doe",
+    "customer_mobile": "9876543210",
+    "remark": "VIP Pass"
+}
+
+resp = requests.post(f"{BASE_URL}/api/create-order", json=order_payload).json()
+
+if resp.get("success"):
+    order_id = resp["order_id"]
+    qr_url = resp["qr_image_url"]     # Direct PNG QR image for embeds
+    upi_intent = resp.get("upi_intent")
+
+    print(f"✅ Order Created: {order_id}")
+    print(f"📸 QR Image URL: {qr_url}")
+    print(f"📱 UPI Intent Deep-Link: {upi_intent}")
+
+    # 2. Check Payment Status (Poll every 3 seconds)
+    print("⏳ Awaiting customer payment...")
+    for _ in range(60):  # Poll up to 3 minutes
+        time.sleep(3)
+        status_resp = requests.post(f"{BASE_URL}/api/check-status", json={"order_id": order_id}).json()
+        
+        if status_resp.get("status") == "SUCCESS":
+            bank_utr = status_resp.get("utr")
+            amount_paid = status_resp.get("amount")
+            print(f"🎉 Payment SUCCESS! Verified ₹{amount_paid} with Bank UTR: {bank_utr}")
+            break
+else:
+    print("❌ Failed to create order:", resp.get("message"))</pre>
+
+            <!-- Discord Bot -->
+            <pre class="sdk-code-box" id="code-discord" style="display:none; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;">import discord
+from discord.ext import commands
+import requests
+import asyncio
+
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
+GATEWAY_URL = "https://ss-empire-gateway.onrender.com"
+
+@bot.command()
+async def pay(ctx, amount: str = "100"):
+    """Usage: !pay 100"""
+    # 1. Create Gateway Order
+    res = requests.post(f"{GATEWAY_URL}/api/create-order", json={
+        "amount": amount,
+        "customer_name": ctx.author.name,
+        "remark": f"Discord_{ctx.author.id}"
+    }).json()
+
+    if not res.get("success"):
+        await ctx.send("❌ Error creating payment QR.")
+        return
+
+    order_id = res["order_id"]
+    qr_url = res["qr_image_url"]
+
+    # 2. Send Discord Embed with Live Dynamic QR
+    embed = discord.Embed(
+        title="⚡ SS EMPIRE — Instant UPI Payment",
+        description="Scan QR with **PhonePe, Paytm, or Google Pay** (Savings Account)",
+        color=0xff1744
+    )
+    embed.add_field(name="💰 Amount", value=f"₹{amount}", inline=True)
+    embed.add_field(name="🆔 Order ID", value=f"`{order_id}`", inline=True)
+    embed.set_image(url=qr_url)
+    embed.set_footer(text="Awaiting payment confirmation... auto verifies!")
+
+    msg = await ctx.send(embed=embed)
+
+    # 3. Poll payment status asynchronously in background
+    for _ in range(60): # 3 minutes timeout
+        await asyncio.sleep(3)
+        chk = requests.post(f"{GATEWAY_URL}/api/check-status", json={"order_id": order_id}).json()
+        
+        if chk.get("status") == "SUCCESS":
+            success_embed = discord.Embed(
+                title="✅ Payment Verified & Role Granted!",
+                description=f"Thank you {ctx.author.mention}!\n**Amount:** ₹{amount}\n**Bank UTR:** `{chk.get('utr')}`",
+                color=0x00e676
+            )
+            await msg.edit(embed=success_embed)
+            # Add user VIP role here automatically:
+            # role = discord.utils.get(ctx.guild.roles, name="VIP")
+            # await ctx.author.add_roles(role)
+            break
+
+bot.run("YOUR_DISCORD_BOT_TOKEN")</pre>
+
+            <!-- Telegram Bot -->
+            <pre class="sdk-code-box" id="code-telegram" style="display:none; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;">import telebot
+import requests
+import time
+
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+GATEWAY_URL = "https://ss-empire-gateway.onrender.com"
+bot = telebot.TeleBot(BOT_TOKEN)
+
+@bot.message_handler(commands=['pay'])
+def handle_pay(message):
+    try:
+        # Command: /pay 100
+        parts = message.text.split()
+        amount = parts[1] if len(parts) > 1 else "50"
+
+        # 1. Create Order on Gateway
+        res = requests.post(f"{GATEWAY_URL}/api/create-order", json={
+            "amount": amount,
+            "customer_name": message.from_user.first_name or "TelegramUser",
+            "remark": f"TG_{message.from_user.id}"
+        }).json()
+
+        if not res.get("success"):
+            bot.reply_to(message, "❌ Error generating payment QR.")
+            return
+
+        order_id = res['order_id']
+        qr_url = res['qr_image_url']
+
+        caption = (
+            f"⚡ <b>SS EMPIRE UPI PAYMENT</b>\n\n"
+            f"💰 <b>Amount:</b> ₹{amount}\n"
+            f"🆔 <b>Order ID:</b> <code>{order_id}</code>\n\n"
+            f"📱 Scan QR using <b>PhonePe / GPay / Paytm</b>\n"
+            f"⏳ <i>Auto-verifying your payment in real-time...</i>"
+        )
+
+        sent_msg = bot.send_photo(message.chat.id, qr_url, caption=caption, parse_mode="HTML")
+
+        # 2. Poll for payment status
+        for _ in range(60): # 3 minutes
+            time.sleep(3)
+            chk = requests.post(f"{GATEWAY_URL}/api/check-status", json={"order_id": order_id}).json()
+            if chk.get('status') == 'SUCCESS':
+                bot.reply_to(
+                    sent_msg, 
+                    f"🎉 <b>Payment Received Successfully!</b>\n\n"
+                    f"💵 <b>Amount:</b> ₹{amount}\n"
+                    f"🏦 <b>Bank Reference (UTR):</b> <code>{chk.get('utr')}</code>\n\n"
+                    f"✅ Your access has been unlocked automatically!",
+                    parse_mode="HTML"
+                )
+                break
+    except Exception as e:
+        bot.reply_to(message, f"Error: {str(e)}")
+
+bot.infinity_polling()</pre>
+
+            <!-- Java -->
+            <pre class="sdk-code-box" id="code-java" style="display:none; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;">import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+public class SSEmpireGateway {
+    private static final String BASE_URL = "https://ss-empire-gateway.onrender.com";
+
+    public static void main(String[] args) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+
+        // 1. Create UPI Order
+        String jsonPayload = """
+        {
+            "amount": "100",
+            "customer_name": "Rahul",
+            "customer_mobile": "9876543210",
+            "remark": "Java SDK Order"
+        }
+        """;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/api/create-order"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("✅ Order Created: " + response.body());
+
+        // 2. Poll Status Check with Order ID
+        String checkPayload = "{\"order_id\":\"TXN1789924627C92E\"}";
+        HttpRequest checkReq = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/api/check-status"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(checkPayload))
+                .build();
+
+        HttpResponse<String> checkResp = client.send(checkReq, HttpResponse.BodyHandlers.ofString());
+        System.out.println("Status Check: " + checkResp.body());
+    }
+}</pre>
+
+            <!-- Node.js -->
+            <pre class="sdk-code-box" id="code-node" style="display:none; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;">const axios = require('axios');
+
+const BASE_URL = 'https://ss-empire-gateway.onrender.com';
+
+async function processPayment(amount, customerName, remark) {
+  try {
+    // 1. Create Order
+    const { data: order } = await axios.post(`${BASE_URL}/api/create-order`, {
+      amount: String(amount),
+      customer_name: customerName,
+      customer_mobile: '9876543210',
+      remark: remark
+    });
+
+    if (!order.success) {
+      console.error('Order creation failed:', order.message);
+      return;
+    }
+
+    console.log(`✅ Order ID: ${order.order_id}`);
+    console.log(`📸 QR Code Image: ${order.qr_image_url}`);
+    console.log(`📱 UPI Intent: ${order.upi_intent}`);
+
+    // 2. Poll Payment Status every 3s
+    const pollInterval = setInterval(async () => {
+      const { data: status } = await axios.post(`${BASE_URL}/api/check-status`, {
+        order_id: order.order_id
+      });
+
+      if (status.status === 'SUCCESS') {
+        clearInterval(pollInterval);
+        console.log(`🎉 Payment Verified! UTR: ${status.utr}, Amount: ₹${status.amount}`);
+      }
+    }, 3000);
+
+  } catch (error) {
+    console.error('API Error:', error.message);
+  }
+}
+
+processPayment(100, 'Suyash', 'VIP Pass');</pre>
+
+            <!-- PHP -->
+            <pre class="sdk-code-box" id="code-php" style="display:none; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;">&lt;?php
+$baseUrl = "https://ss-empire-gateway.onrender.com";
+
+// 1. Create Order
+$payload = json_encode([
+    "amount" => "100",
+    "customer_name" => "Rohan",
+    "customer_mobile" => "9876543210",
+    "remark" => "Website Order"
+]);
+
+$ch = curl_init("$baseUrl/api/create-order");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$orderData = json_decode($response, true);
+if ($orderData && $orderData['success']) {
+    $orderId = $orderData['order_id'];
+    $qrUrl = $orderData['qr_image_url'];
+    echo "Order Created: $orderId\n";
+    echo "QR Code URL: $qrUrl\n";
+}
+?&gt;</pre>
+
+            <!-- cURL -->
+            <pre class="sdk-code-box" id="code-curl" style="display:none; margin:0; font-family:'JetBrains Mono',monospace; font-size:0.84rem; color:#f1f5f9; overflow-x:auto; line-height:1.5;"># 1. Create UPI Order
+curl -X POST "https://ss-empire-gateway.onrender.com/api/create-order" \
+     -H "Content-Type: application/json" \
+     -d '{"amount": "100", "customer_name": "Suyash", "remark": "Test"}'
+
+# 2. Check Order Status & Bank UTR
+curl -X POST "https://ss-empire-gateway.onrender.com/api/check-status" \
+     -H "Content-Type: application/json" \
+     -d '{"order_id": "TXN1789924627C92E"}'
+
+# 3. Verify Payment via 12-digit Bank UTR
+curl -X POST "https://ss-empire-gateway.onrender.com/api/verify-utr" \
+     -H "Content-Type: application/json" \
+     -d '{"order_id": "TXN1789924627C92E", "utr": "426189123456"}'</pre>
+          </div>
+        </div>
+
       </div>
     </section>
 

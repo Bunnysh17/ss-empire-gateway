@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     loadTransactions();
     checkTerminalXStatus();
+    initApiDocs();
     document.getElementById('btnRefreshTxns')?.addEventListener('click', loadTransactions);
     document.getElementById('btnCheckApi')?.addEventListener('click', checkTerminalXStatus);
     document.getElementById('btnTestDiagnostics')?.addEventListener('click', runDiagnostics);
@@ -509,3 +510,59 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+/* Init API SDK Snippet Tabs & Copy buttons in Admin Panel */
+function initApiDocs() {
+  const sdkTabs = document.querySelectorAll('.sdk-tab-btn');
+  const codeBoxes = document.querySelectorAll('.sdk-code-box');
+
+  sdkTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sdkTabs.forEach(b => {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-secondary');
+      });
+      btn.classList.add('active', 'btn-primary');
+      btn.classList.remove('btn-secondary');
+
+      const targetId = `code-${btn.dataset.sdk}`;
+      codeBoxes.forEach(box => {
+        if (box.id === targetId) {
+          box.style.display = 'block';
+        } else {
+          box.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Copy buttons for Base URLs
+  document.querySelectorAll('.btn-copy-api').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.target;
+      const input = document.getElementById(targetId);
+      if (input) {
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        const originalText = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+        showToast('URL copied to clipboard!');
+      }
+    });
+  });
+
+  // Copy button for Active Code
+  document.getElementById('btnCopyActiveCode')?.addEventListener('click', () => {
+    const activeBox = document.querySelector('.sdk-code-box[style*="block"]') || document.getElementById('code-python');
+    if (activeBox) {
+      navigator.clipboard.writeText(activeBox.textContent);
+      const btn = document.getElementById('btnCopyActiveCode');
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Code Copied!';
+      setTimeout(() => { btn.textContent = originalText; }, 2000);
+      showToast('Code snippet copied to clipboard!');
+    }
+  });
+}
+
