@@ -5,11 +5,11 @@ This API allows any Telegram Bot, Discord Bot, or custom app to generate dynamic
 
 ---
 
-## 🌐 Live Public Base URL (Active Now):
+## 🌐 Permanent 24/7 Live Cloud Base URL:
 ```
-https://pot-purchased-baseball-striking.trycloudflare.com
+https://ss-empire-gateway.onrender.com
 ```
-*(Local fallback: `http://127.0.0.1:5000`)*
+*(Hosted 24/7 on Cloud - Runs without your PC!)*
 
 ---
 
