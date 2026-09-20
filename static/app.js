@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAmountChips();
   initForms();
   // Only run Admin Panel logic if on admin page
-  if (document.getElementById('transactionsTableBody') || document.getElementById('settingToken')) {
+  if (document.getElementById('txnTableBody') || document.getElementById('settingToken')) {
     loadConfig();
     loadTransactions();
     checkTerminalXStatus();
@@ -439,30 +439,46 @@ async function loadTransactions() {
       return;
     }
 
-    tbody.innerHTML = data.transactions.map(t => {
+    // Sort: Verified SUCCESS payments with real UTRs first, then newest
+    const sortedTxns = [...data.transactions].sort((a, b) => {
+      const aSuccess = (a.status === 'SUCCESS' || a.status === 'COMPLETED') ? 1 : 0;
+      const bSuccess = (b.status === 'SUCCESS' || b.status === 'COMPLETED') ? 1 : 0;
+      if (bSuccess !== aSuccess) return bSuccess - aSuccess;
+      return (b.date || '').localeCompare(a.date || '');
+    });
+
+    tbody.innerHTML = sortedTxns.map(t => {
+      const isSuccess = t.status === 'SUCCESS' || t.status === 'COMPLETED';
       let badgeClass = 'badge-pending';
-      if (t.status === 'SUCCESS' || t.status === 'COMPLETED') badgeClass = 'badge-success';
+      if (isSuccess) badgeClass = 'badge-success';
       if (t.status === 'FAILED') badgeClass = 'badge-failed';
 
       const engineBadge = t.engine === 'terminalx' 
         ? `<span style="color:var(--primary); font-size:0.75rem; font-weight:600;">TerminalX</span>`
         : `<span style="color:#a855f7; font-size:0.75rem; font-weight:600;">Direct UPI</span>`;
 
+      const rowStyle = isSuccess 
+        ? `background: rgba(0, 230, 118, 0.04); border-left: 3px solid #00e676;` 
+        : ``;
+
       return `
-        <tr>
+        <tr style="${rowStyle}">
           <td style="font-family:monospace; font-weight:600; color:#fff;">${t.order_id}</td>
           <td>${t.customer_name || 'Customer'}<br><small style="color:var(--text-muted);">${t.customer_mobile || ''}</small></td>
-          <td style="font-weight:700; color:#fff;">₹${t.amount}</td>
+          <td style="font-weight:700; color:${isSuccess ? '#00e676' : '#fff'};">₹${t.amount}</td>
           <td>${engineBadge}</td>
           <td><span class="badge ${badgeClass}">${t.status}</span></td>
-          <td style="font-family:monospace; font-size:0.8rem;">${t.utr || '-'}</td>
+          <td style="font-family:monospace; font-size:0.82rem; font-weight:700; color:${isSuccess ? '#00e676' : 'var(--text-muted)'};">${t.utr || '-'}</td>
           <td style="font-size:0.8rem; color:var(--text-muted);">${t.date || '-'}</td>
           <td>
             ${t.status === 'PENDING' ? `
               <button class="btn btn-secondary btn-sm" onclick="checkLiveTxnStatus('${t.order_id}')" style="padding:4px 10px; font-size:0.75rem;">
                 Check Status
               </button>
-            ` : `<span style="color:var(--success); font-size:0.8rem; font-weight:600;">Verified (Real)</span>`}
+            ` : `<span style="color:#00e676; font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Verified Real
+                 </span>`}
           </td>
         </tr>
       `;
