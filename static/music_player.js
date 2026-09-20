@@ -145,31 +145,41 @@
       }
     });
 
-    // 4. Instant Autoplay on website load + user movement triggers
+    // 4. Instant Autoplay on website load + first click/touch trigger
     function forceAutoplay() {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          updateUi(true);
-        }).catch(() => {
-          // If browser blocked unprompted autoplay, trigger immediately on first mouse move, scroll, touch, or click
-          updateUi(false);
-          const startOnInteraction = () => {
-            audio.play().then(() => {
-              updateUi(true);
-            }).catch(() => {});
-            ['click', 'touchstart', 'scroll', 'mousemove', 'pointerdown', 'keydown'].forEach(evt => {
-              window.removeEventListener(evt, startOnInteraction);
-              document.removeEventListener(evt, startOnInteraction);
-            });
-          };
-
-          ['click', 'touchstart', 'scroll', 'mousemove', 'pointerdown', 'keydown'].forEach(evt => {
-            window.addEventListener(evt, startOnInteraction, { once: true, passive: true });
-            document.addEventListener(evt, startOnInteraction, { once: true, passive: true });
+      function tryPlay() {
+        const p = audio.play();
+        if (p !== undefined) {
+          p.then(() => {
+            updateUi(true);
+            cleanupListeners();
+          }).catch(() => {
+            updateUi(false);
           });
+        }
+      }
+
+      function onFirstUserGesture() {
+        tryPlay();
+      }
+
+      function cleanupListeners() {
+        const events = ['click', 'pointerdown', 'mousedown', 'touchstart', 'touchend', 'keydown'];
+        events.forEach(evt => {
+          document.removeEventListener(evt, onFirstUserGesture, true);
+          window.removeEventListener(evt, onFirstUserGesture, true);
         });
       }
+
+      // 1. Try playing immediately on page load
+      tryPlay();
+
+      // 2. Intercept ANY click or touch anywhere on the page immediately
+      const events = ['click', 'pointerdown', 'mousedown', 'touchstart', 'touchend', 'keydown'];
+      events.forEach(evt => {
+        document.addEventListener(evt, onFirstUserGesture, { capture: true });
+        window.addEventListener(evt, onFirstUserGesture, { capture: true });
+      });
     }
 
     forceAutoplay();
