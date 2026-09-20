@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SS EMPIRE - Secure Payment</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --rzp-blue: #3399cc;
+      --bg-color: #cdd5e0;
+      --card-bg: #ffffff;
+      --text-main: #333333;
+      --text-muted: #888888;
+      --border-color: #e2e2e2;
+    }
+    body.dark-mode {
+      --bg-color: #0f1115;
+      --card-bg: #1c1f26;
+      --text-main: #ffffff;
+      --text-muted: #a0a4b0;
+      --border-color: #2b303b;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 110px 20px 40px 20px;
+      color: var(--text-main);
+      transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* Top Floating Pill Navbar */
+    .top-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 860px;
+      height: 56px;
+      padding: 0 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(20, 24, 30, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 30px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .nav-brand {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.3px;
+    }
+    .nav-brand i {
+      color: #fff;
+      background: linear-gradient(135deg, #3399cc, #1b6d94);
+      padding: 7px 8px;
+      border-radius: 50%;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(51, 153, 204, 0.35);
+    }
+    .theme-toggle {
+      cursor: pointer;
+      font-size: 15px;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.08);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Page Container */
+    .page-container {
+      display: flex;
+      gap: 24px;
+      width: 100%;
+      max-width: 820px;
+      justify-content: center;
+      align-items: flex-start;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .page-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .info-card-group {
+        order: 2;
+        width: 100%;
+        max-width: 380px;
+      }
+      .checkout-card {
+        order: 1;
+        width: 100%;
+        max-width: 380px;
+      }
+    }
+
+    /* Left Info Cards */
+    .info-card-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+      max-width: 380px;
+      width: 100%;
+    }
+    .info-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid var(--border-color);
+    }
+    .info-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .info-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+    .order-item span:last-child {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 4px;
+    }
+    .info-card hr {
+      border: none;
+      border-top: 1px dashed var(--border-color);
+      margin: 6px 0;
+    }
+    .security-badges {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    /* Right Checkout Card */
+    .checkout-card {
+      background: var(--card-bg);
+      flex: 1;
+      max-width: 380px;
+      width: 100%;
+      border-radius: 6px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border-color);
+    }
+    .header {
+      background: var(--rzp-blue);
+      color: #fff;
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .header .merchant-name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+    }
+    .header .merchant-name::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: textShine 3s infinite;
+    }
+    @keyframes textShine {
+      100% { left: 200%; }
+    }
+    .header .merchant-desc {
+      font-size: 12px;
+      opacity: 0.92;
+      margin-top: 3px;
+    }
+
+    .content {
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .amount-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .amount-section .currency {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .amount-section .amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .amount-section .purpose {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: monospace;
+      font-weight: 500;
+    }
+
+    /* Glowing QR Container with Laser Scan */
+    .qr-container {
+      border: 2px solid var(--rzp-blue);
+      padding: 12px;
+      border-radius: 8px;
+      background: #ffffff;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      animation: pulseGlow 2.5s infinite;
+      width: 204px;
+      height: 204px;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(51, 153, 204, 0.5); }
+      70% { box-shadow: 0 0 0 16px rgba(51, 153, 204, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(51, 153, 204, 0); }
+    }
+    .qr-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(51, 153, 204, 0.9);
+      box-shadow: 0 0 10px rgba(51, 153, 204, 0.9);
+      animation: scan 2s infinite ease-in-out alternate;
+    }
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+    .qr-container img, .qr-container canvas {
+      width: 180px !important;
+      height: 180px !important;
+      display: block;
+    }
+
+    .scan-text {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 18px;
+      color: var(--text-muted);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .divider::before { margin-right: 10px; }
+    .divider::after { margin-left: 10px; }
+
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+    .app-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 10px 4px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.02);
+    }
+    .app-btn:hover {
+      background: rgba(51, 153, 204, 0.08);
+      border-color: var(--rzp-blue);
+      transform: translateY(-2px);
+    }
+    .app-icon { font-size: 22px; }
+    .app-name { font-size: 10px; font-weight: 600; }
+
+    .footer {
+      background: rgba(0,0,0,0.02);
+      border-top: 1px solid var(--border-color);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .secured-by {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .secured-by i { color: #10b981; font-size: 13px; }
+    #timer {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    /* Floating 3D Credit Card in Bottom Corner */
+    .floating-3d-card-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      perspective: 1200px;
+      z-index: 50;
+      pointer-events: none;
+    }
+    @media (max-width: 768px) {
+      .floating-3d-card-container { display: none; }
+    }
+    .floating-3d-card {
+      width: 160px;
+      height: 100px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: floatSpin 12s infinite linear;
+    }
+    .floating-3d-card .card-front, .floating-3d-card .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      backface-visibility: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 10px;
+      overflow: hidden;
+    }
+    .floating-3d-card .card-front::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: rotate(45deg);
+      animation: cardShine 3s infinite linear;
+    }
+    .floating-3d-card .card-back {
+      transform: rotateY(180deg);
+      padding: 0;
+      background: #0f172a;
+    }
+    .floating-3d-card .stripe {
+      width: 100%;
+      height: 20px;
+      background: #000;
+      margin-top: 12px;
+    }
+    .floating-3d-card .cvv {
+      width: 35px;
+      height: 14px;
+      background: #fff;
+      color: #000;
+      font-size: 9px;
+      text-align: center;
+      line-height: 14px;
+      margin: 8px auto 0 8px;
+    }
+    .floating-3d-card .chip { font-size: 16px; color: #fbbf24; margin-bottom: 18px; }
+    .floating-3d-card .wifi { font-size: 12px; position: absolute; right: 12px; top: 12px; opacity: 0.8; }
+    .floating-3d-card .card-no { font-family: monospace; font-size: 10px; letter-spacing: 1px; margin-bottom: 6px; }
+    .floating-3d-card .card-name { font-size: 8px; opacity: 0.8; }
+    .floating-3d-card .card-logo { position: absolute; bottom: 8px; right: 10px; font-size: 20px; opacity: 0.9; }
+
+    @keyframes floatSpin {
+      0% { transform: translateY(0) rotateX(16deg) rotateY(0deg) rotateZ(-8deg); }
+      50% { transform: translateY(-16px) rotateX(8deg) rotateY(180deg) rotateZ(4deg); }
+      100% { transform: translateY(0) rotateX(16deg) rotateY(360deg) rotateZ(-8deg); }
+    }
+    @keyframes cardShine { 0% { left: -100%; } 100% { left: 100%; } }
+
+    /* Success Overlay with Golden 3D Coin Flip */
+    .success-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 17, 21, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      text-align: center;
+      padding: 20px;
+    }
+    .success-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .coin-container {
+      perspective: 1000px;
+      width: 90px;
+      height: 90px;
+      margin-bottom: 20px;
+    }
+    .coin {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: flip 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation-play-state: paused;
+    }
+    .success-overlay.active .coin {
+      animation-play-state: running;
+    }
+    .coin-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .coin-front { background: #fbbf24; border: 4px solid #f59e0b; }
+    .coin-back { background: #10b981; border: 4px solid #059669; transform: rotateY(180deg); }
+    @keyframes flip {
+      0% { transform: rotateY(0) translateY(0); }
+      50% { transform: rotateY(900deg) translateY(-80px); }
+      100% { transform: rotateY(1800deg) translateY(0); }
+    }
+    .success-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #10b981;
+      margin-bottom: 12px;
+    }
+    .success-details {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+      max-width: 340px;
+      width: 100%;
+      font-size: 13px;
+      color: #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .success-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .success-row:last-child { margin-bottom: 0; }
+    .success-btn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 11px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .success-btn:hover { background: #059669; }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s;
+    }
+    .modal.active { opacity: 1; pointer-events: all; }
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 24px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 320px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .modal-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+    .modal-btn {
+      background: var(--rzp-blue);
+      color: #fff;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .modal-cancel { margin-top: 12px; font-size: 12px; color: var(--rzp-blue); cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Floating Navbar -->
+  <div class="top-nav">
+    <div class="nav-brand">
+      <i class="fas fa-shield-alt"></i> SecurePay
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+      <i class="fas fa-moon" id="theme-icon"></i>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="page-container">
+
+    <!-- Left Column: Order Summary & Security -->
+    <div class="info-card-group">
+      <div class="info-card">
+        <h3>Order Summary</h3>
+        <div class="order-item">
+          <span>Merchant</span>
+          <span id="summaryMerchantName">SS EMPIRE</span>
+        </div>
+        <div class="order-item">
+          <span>Txn ID</span>
+          <span id="summaryOrderId" style="font-family: monospace;">-</span>
+        </div>
+        <div class="order-item">
+          <span>Amount</span>
+          <span id="summaryAmount">₹1.00</span>
+        </div>
+        <hr>
+        <div class="total-row">
+          <span>Total Payable</span>
+          <span id="summaryTotal">₹1.00</span>
+        </div>
+
+        <div class="security-badges">
+          <i class="fas fa-lock"></i> 256-bit Secure Encryption
+        </div>
+        <div class="security-badges" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer;" onclick="alert('For support, contact SS EMPIRE billing team.')">
+          <i class="fas fa-headset"></i> Need help? Contact Support
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3><i class="fas fa-chart-line" style="color: var(--rzp-blue);"></i> Connection Security</h3>
+        <div style="position: relative; height: 80px; overflow: hidden; border-radius: 8px; background: rgba(51, 153, 204, 0.05); border: 1px solid rgba(51, 153, 204, 0.2); display: flex; align-items: flex-end;">
+          <svg viewBox="0 0 300 100" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--rzp-blue)" stop-opacity="0.4" />
+                <stop offset="100%" stop-color="var(--rzp-blue)" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M0,80 L20,60 L50,70 L80,30 L110,50 L150,20 L190,40 L230,10 L270,30 L300,5" fill="none" stroke="var(--rzp-blue)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M0,80 L20,60 L50,70 L80,30 L110,50 L150,20 L190,40 L230,10 L270,30 L300,5 L300,100 L0,100 Z" fill="url(#gradient)" />
+          </svg>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); text-align: center;">256-bit AES encryption tunnel active</div>
+      </div>
+    </div>
+
+    <!-- Right Column: Checkout Card -->
+    <div class="checkout-card">
+      <div class="header">
+        <div class="merchant-name" id="cardMerchantName">SS EMPIRE</div>
+        <div class="merchant-desc">Secure Checkout</div>
+      </div>
+
+      <div class="content">
+        <div class="amount-section">
+          <span class="currency">₹</span>
+          <span class="amount" id="displayAmount">1.00</span>
+          <div class="purpose" id="displayOrderId">Txn ID: -</div>
+        </div>
+
+        <!-- Glowing Dynamic QR Code -->
+        <div class="qr-container" id="qrWrapper">
+          <div id="payQrCode"></div>
+        </div>
+
+        <div class="scan-text">
+          <i class="fas fa-qrcode" style="color: var(--rzp-blue);"></i> Scan QR with any UPI app
+        </div>
+
+        <div class="divider">Or Pay Using Apps</div>
+
+        <!-- Direct UPI Apps -->
+        <div class="apps-grid">
+          <a href="#" class="app-btn" id="btnPaytm" onclick="onAppClick()">
+            <i class="fas fa-wallet app-icon" style="color: #00BAF2;"></i>
+            <span class="app-name">Paytm</span>
+          </a>
+          <a href="#" class="app-btn" id="btnPhonepe" onclick="onAppClick()">
+            <i class="fas fa-mobile-alt app-icon" style="color: #5F259F;"></i>
+            <span class="app-name">PhonePe</span>
+          </a>
+          <a href="#" class="app-btn" id="btnGpay" onclick="onAppClick()">
+            <i class="fab fa-google app-icon" style="color: #4285F4;"></i>
+            <span class="app-name">GPay</span>
+          </a>
+          <a href="#" class="app-btn" id="btnOther" onclick="onAppClick()">
+            <i class="fas fa-plus app-icon" style="color: var(--text-main);"></i>
+            <span class="app-name">Other</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="secured-by">
+          <i class="fas fa-shield-alt"></i> Secured by UPI
+        </div>
+        <div id="timer">05:00</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Verification Modal -->
+  <div class="modal" id="verifyModal">
+    <div class="modal-content">
+      <div class="modal-title">Did you complete the payment?</div>
+      <div class="modal-desc">Please confirm if you have successfully completed the payment on your UPI app.</div>
+      <button class="modal-btn" id="verifyBtn" onclick="manualVerifyCheck()">I have paid</button>
+      <div class="modal-cancel" onclick="closeVerifyModal()">Cancel</div>
+    </div>
+  </div>
+
+  <!-- Success Overlay with Golden 3D Coin Flip -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="coin-container">
+      <div class="coin">
+        <div class="coin-face coin-front"><i class="fas fa-rupee-sign"></i></div>
+        <div class="coin-face coin-back"><i class="fas fa-check"></i></div>
+      </div>
+    </div>
+    <div class="success-text">Payment Successful</div>
+    <div class="success-details">
+      <div class="success-row">
+        <span>Paid to:</span>
+        <strong id="receiptMerchant">SS EMPIRE</strong>
+      </div>
+      <div class="success-row">
+        <span>Amount:</span>
+        <strong id="receiptAmount">₹1.00</strong>
+      </div>
+      <div class="success-row">
+        <span>Order ID:</span>
+        <strong id="receiptOrderId" style="font-family: monospace;">-</strong>
+      </div>
+      <div class="success-row">
+        <span>Bank UTR:</span>
+        <strong id="receiptUtr" style="color:#10b981; font-family: monospace;">-</strong>
+      </div>
+    </div>
+    <button class="success-btn" onclick="window.location.href='/'">Return to Dashboard</button>
+  </div>
+
+  <!-- Floating 3D Card Ambient Graphic -->
+  <div class="floating-3d-card-container">
+    <div class="floating-3d-card">
+      <div class="card-front">
+        <i class="fas fa-microchip chip"></i>
+        <i class="fas fa-wifi wifi"></i>
+        <div class="card-no">**** **** **** 9999</div>
+        <div class="card-name">SS EMPIRE</div>
+        <div class="card-logo"><i class="fab fa-cc-visa"></i></div>
+      </div>
+      <div class="card-back">
+        <div class="stripe"></div>
+        <div class="cvv">***</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const icon = document.getElementById('theme-icon');
+      if (document.body.classList.contains('dark-mode')) {
+        icon.className = 'fas fa-sun';
+      } else {
+        icon.className = 'fas fa-moon';
+      }
+    }
+
+    function onAppClick() {
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          document.getElementById('verifyModal').classList.add('active');
+        }, 1200);
+      }
+    }
+
+    function closeVerifyModal() {
+      document.getElementById('verifyModal').classList.remove('active');
+    }
+
+    function manualVerifyCheck() {
+      const btn = document.getElementById('verifyBtn');
+      btn.innerHTML = 'Verifying...';
+      btn.style.opacity = '0.7';
+      btn.disabled = true;
+      checkStatus();
+
+      setTimeout(() => {
+        if (!paymentProcessed) {
+          btn.innerHTML = 'I have paid';
+          btn.style.opacity = '1';
+          btn.disabled = false;
+          alert("Payment not verified yet. Please wait a moment and tap again.");
+        }
+      }, 3000);
+    }
+
+    let paymentProcessed = false;
+    let pollInterval = null;
+    let currentOrderId = null;
+    let qrInstance = null;
+
+    // Read Query Params
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramOrderId = urlParams.get('id') || ('TXN' + Date.now().toString().slice(-8));
+    const paramAmount = urlParams.get('amount') || '1';
+    const paramDesc = urlParams.get('desc') || 'Payment';
+
+    async function initCheckout() {
+      currentOrderId = paramOrderId;
+      document.getElementById('summaryOrderId').textContent = currentOrderId;
+      document.getElementById('displayOrderId').textContent = 'Txn ID: ' + currentOrderId;
+      document.getElementById('summaryAmount').textContent = '₹' + parseFloat(paramAmount).toFixed(2);
+      document.getElementById('summaryTotal').textContent = '₹' + parseFloat(paramAmount).toFixed(2);
+      document.getElementById('displayAmount').textContent = parseFloat(paramAmount).toFixed(2);
+
+      // Check if order already exists
+      try {
+        const orderResp = await fetch(`/api/order-details/${currentOrderId}`);
+        const orderData = await orderResp.json();
+
+        if (orderData.success && orderData.order) {
+          applyOrder(orderData.order, orderData.merchant_name);
+        } else {
+          // Create new order via API
+          createNewOrder();
+        }
+      } catch (e) {
+        createNewOrder();
+      }
+    }
+
+    async function createNewOrder() {
+      try {
+        const resp = await fetch('/api/create-order', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            order_id: currentOrderId,
+            amount: paramAmount,
+            customer_name: 'Direct Customer',
+            customer_mobile: '9876543210',
+            remark: paramDesc
+          })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          applyOrder(res, res.merchant_name || 'SS EMPIRE');
+        }
+      } catch (err) {
+        console.error("Order creation error:", err);
+      }
+    }
+
+    function applyOrder(data, merchantName) {
+      const name = merchantName || 'SS EMPIRE';
+      document.getElementById('summaryMerchantName').textContent = name;
+      document.getElementById('cardMerchantName').textContent = name;
+      document.getElementById('receiptMerchant').textContent = name;
+
+      const upiString = data.upi_intent || data.qr_data || `upi://pay?pa=paytm.s3tuyo9@pty&pn=SS%20EMPIRE&am=${paramAmount}&cu=INR&tn=${currentOrderId}`;
+
+      // Render Dynamic QR
+      const qrEl = document.getElementById('payQrCode');
+      qrEl.innerHTML = '';
+      qrInstance = new QRCode(qrEl, {
+        text: upiString,
+        width: 180,
+        height: 180,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // Bind UPI App Buttons
+      document.getElementById('btnPaytm').href = upiString;
+      document.getElementById('btnPhonepe').href = upiString;
+      document.getElementById('btnGpay').href = upiString;
+      document.getElementById('btnOther').href = upiString;
+
+      // Start Countdown and Polling
+      startTimer(5, 0);
+      startPolling();
+    }
+
+    function startTimer(m, s) {
+      let tot = m * 60 + s;
+      const el = document.getElementById("timer");
+      const iv = setInterval(() => {
+        const min = Math.floor(tot / 60);
+        const sec = tot % 60;
+        el.textContent = `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+        if (tot-- <= 0) {
+          clearInterval(iv);
+          el.textContent = "Expired";
+        }
+      }, 1000);
+    }
+
+    function startPolling() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(checkStatus, 3000);
+    }
+
+    async function checkStatus() {
+      if (paymentProcessed || !currentOrderId) return;
+      try {
+        const resp = await fetch('/api/check-status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ order_id: currentOrderId })
+        });
+        const d = await resp.json();
+        if (d.status === 'SUCCESS' || d.status === 'COMPLETED') {
+          paymentProcessed = true;
+          clearInterval(pollInterval);
+          closeVerifyModal();
+
+          // Show receipt details
+          document.getElementById('receiptAmount').textContent = '₹' + (d.amount || paramAmount);
+          document.getElementById('receiptOrderId').textContent = currentOrderId;
+          document.getElementById('receiptUtr').textContent = d.utr || 'VERIFIED';
+
+          // Trigger 3D Golden Coin Flip
+          document.getElementById('successOverlay').classList.add('active');
+
+          try {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+          } catch(e) {}
+        }
+      } catch (e) {}
+    }
+
+    initCheckout();
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "user_token": "79ed535e58c8352bc5e9324130e39cc1",
+  "merchant_name": "SS EMPIRE",
+  "merchant_upi": "paytm.s3tuyo9@pty",
+  "mode": "hybrid",
+  "terminalx_base_url": "https://terminalx999.space",
+  "webhook_url": "",
+  "telegram_bot_token": "",
+  "discord_bot_token": ""
+}
