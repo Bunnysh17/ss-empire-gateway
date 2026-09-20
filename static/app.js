@@ -10,14 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initAmountChips();
   initForms();
-  loadConfig();
-  loadTransactions();
-  checkTerminalXStatus();
-
-  // Refresh txns button
-  document.getElementById('btnRefreshTxns')?.addEventListener('click', loadTransactions);
-  document.getElementById('btnCheckApi')?.addEventListener('click', checkTerminalXStatus);
-  document.getElementById('btnTestDiagnostics')?.addEventListener('click', runDiagnostics);
+  // Only run Admin Panel logic if on admin page
+  if (document.getElementById('transactionsTableBody') || document.getElementById('settingToken')) {
+    loadConfig();
+    loadTransactions();
+    checkTerminalXStatus();
+    document.getElementById('btnRefreshTxns')?.addEventListener('click', loadTransactions);
+    document.getElementById('btnCheckApi')?.addEventListener('click', checkTerminalXStatus);
+    document.getElementById('btnTestDiagnostics')?.addEventListener('click', runDiagnostics);
+  }
 
   // Modal Close buttons
   document.getElementById('modalCloseBtn')?.addEventListener('click', closePaymentModal);
