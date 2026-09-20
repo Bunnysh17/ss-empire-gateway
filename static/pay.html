@@ -8,6 +8,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="music_player.css">
   <style>
     :root {
       --rzp-blue: #ff1744;
@@ -65,7 +66,7 @@
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
-      padding: 110px 20px 40px 20px;
+      padding: 100px 20px 40px 20px;
       color: var(--text-main);
       transition: background 0.3s, color 0.3s;
       overflow-x: hidden;
@@ -110,11 +111,11 @@
     }
     .nav-brand i {
       color: #fff;
-      background: linear-gradient(135deg, #3399cc, #1b6d94);
+      background: linear-gradient(135deg, #ff1744, #b71c1c);
       padding: 7px 8px;
       border-radius: 50%;
       font-size: 13px;
-      box-shadow: 0 4px 12px rgba(51, 153, 204, 0.35);
+      box-shadow: 0 4px 12px rgba(255, 23, 68, 0.4);
     }
     .theme-toggle {
       cursor: pointer;
@@ -146,19 +147,45 @@
       margin: 0 auto;
     }
     @media (max-width: 768px) {
+      body {
+        padding: 80px 12px 95px 12px;
+      }
+      .top-nav {
+        width: calc(100% - 24px);
+        top: 10px;
+        height: 50px;
+        padding: 0 16px;
+      }
+      .nav-brand {
+        font-size: 15px;
+      }
       .page-container {
         flex-direction: column;
         align-items: center;
+        width: 100%;
+        gap: 16px;
       }
       .info-card-group {
         order: 2;
         width: 100%;
-        max-width: 380px;
+        max-width: 100%;
       }
       .checkout-card {
         order: 1;
         width: 100%;
-        max-width: 380px;
+        max-width: 100%;
+        border-radius: 16px;
+      }
+      .info-card {
+        padding: 18px 16px;
+        border-radius: 14px;
+      }
+      .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .app-btn {
+        padding: 10px 8px;
       }
     }
 
@@ -244,36 +271,34 @@
       border: 1px solid var(--border-color);
     }
     .header {
-      background: var(--rzp-blue);
+      background: linear-gradient(180deg, rgba(16, 20, 32, 0.98) 0%, rgba(10, 13, 22, 0.99) 100%);
+      border-bottom: 1px solid rgba(255, 23, 68, 0.28);
       color: #fff;
-      padding: 22px 20px;
+      padding: 24px 20px 20px;
       text-align: center;
+      position: relative;
     }
     .header .merchant-name {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      position: relative;
-      display: inline-block;
-      overflow: hidden;
-    }
-    .header .merchant-name::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      animation: textShine 3s infinite;
-    }
-    @keyframes textShine {
-      100% { left: 200%; }
+      font-size: 1.45rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #ffffff !important;
+      text-shadow: 0 0 25px rgba(255, 23, 68, 0.65), 0 2px 8px rgba(0, 0, 0, 0.8);
+      margin-top: 6px;
+      display: block;
     }
     .header .merchant-desc {
-      font-size: 12px;
-      opacity: 0.92;
-      margin-top: 3px;
+      font-size: 0.76rem;
+      color: #ff5252 !important;
+      background: rgba(255, 23, 68, 0.12);
+      border: 1px solid rgba(255, 23, 68, 0.35);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-top: 8px;
     }
 
     .content {
@@ -711,9 +736,9 @@
     <!-- Right Column: Checkout Card -->
     <div class="checkout-card">
       <div class="header" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-        <img src="logo.png" alt="SS EMPIRE" style="width: 52px; height: 52px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 0 25px rgba(255, 23, 68, 0.6); border: 1px solid rgba(255, 23, 68, 0.4); object-fit: cover;">
-        <div class="merchant-name" id="cardMerchantName" style="font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 40%, #ff5252 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SS EMPIRE</div>
-        <div class="merchant-desc" style="color: #ff5252; font-weight: 600; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;">Official UPI Payment Gateway</div>
+        <img src="logo.png" alt="SS EMPIRE" style="width: 56px; height: 56px; border-radius: 12px; margin-bottom: 6px; box-shadow: 0 0 25px rgba(255, 23, 68, 0.65); border: 1px solid rgba(255, 23, 68, 0.4); object-fit: cover;">
+        <div class="merchant-name" id="cardMerchantName">SS EMPIRE</div>
+        <div class="merchant-desc">Official UPI Payment Gateway</div>
       </div>
 
       <div class="content">
@@ -1045,5 +1070,6 @@
 
     initCheckout();
   </script>
+  <script src="music_player.js"></script>
 </body>
 </html>

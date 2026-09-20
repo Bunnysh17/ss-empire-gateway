@@ -1,0 +1,222 @@
+/* SS EMPIRE - Floating Luxury Music Player (DVRST - Dream Space) */
+
+.bgm-floating-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: rgba(10, 14, 24, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 23, 68, 0.35);
+  border-radius: 50px;
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(255, 23, 68, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.bgm-floating-widget:hover {
+  border-color: rgba(255, 23, 68, 0.6);
+  box-shadow: 
+    0 16px 45px rgba(0, 0, 0, 0.9),
+    0 0 35px rgba(255, 23, 68, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Spinning Disc */
+.bgm-disc {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff1744, #880e4f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px rgba(255, 23, 68, 0.6);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.bgm-disc svg {
+  color: #fff;
+  transition: transform 0.3s;
+}
+
+.bgm-floating-widget.playing .bgm-disc {
+  animation: bgmSpin 5s linear infinite;
+}
+
+@keyframes bgmSpin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Track Information */
+.bgm-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bgm-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bgm-subtitle {
+  font-size: 0.68rem;
+  color: #ff5252;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Sound Wave Bars */
+.bgm-waves {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+
+.bgm-waves span {
+  width: 2.5px;
+  height: 3px;
+  background: #ff1744;
+  border-radius: 1px;
+  transition: height 0.2s;
+}
+
+.bgm-floating-widget.playing .bgm-waves span {
+  animation: waveBounce 0.75s ease-in-out infinite alternate;
+}
+
+.bgm-floating-widget.playing .bgm-waves span:nth-child(1) { animation-delay: 0.1s; }
+.bgm-floating-widget.playing .bgm-waves span:nth-child(2) { animation-delay: 0.3s; }
+.bgm-floating-widget.playing .bgm-waves span:nth-child(3) { animation-delay: 0.15s; }
+.bgm-floating-widget.playing .bgm-waves span:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes waveBounce {
+  0% { height: 2px; }
+  100% { height: 11px; }
+}
+
+/* Play/Pause Button */
+.bgm-toggle-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.bgm-toggle-btn:hover {
+  background: rgba(255, 23, 68, 0.25);
+  border-color: #ff1744;
+  color: #ff5252;
+  transform: scale(1.1);
+}
+
+/* Volume Control */
+.bgm-vol-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bgm-mute-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.bgm-mute-btn:hover {
+  color: #ffffff;
+}
+
+.bgm-vol-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 65px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bgm-vol-slider:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.bgm-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff1744;
+  box-shadow: 0 0 10px #ff1744;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.bgm-vol-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .bgm-floating-widget {
+    bottom: 12px;
+    right: 50%;
+    transform: translateX(50%);
+    width: auto;
+    max-width: calc(100vw - 24px);
+    padding: 8px 14px;
+    gap: 10px;
+    border-radius: 35px;
+  }
+
+  .bgm-title {
+    font-size: 0.75rem;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bgm-vol-slider {
+    width: 48px;
+  }
+}
