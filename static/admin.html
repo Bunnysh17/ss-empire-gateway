@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SS EMPIRE - Admin Panel</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- Video Background -->
+  <div class="video-bg-container">
+    <video autoplay muted loop playsinline class="video-bg">
+      <source src="bg.mp4" type="video/mp4">
+    </video>
+    <div class="video-bg-overlay"></div>
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="/" class="brand">
+      <img src="logo.png" alt="SS EMPIRE" class="brand-logo-img">
+      <div class="brand-text">
+        <h1>SS EMPIRE ADMIN</h1>
+        <span>Gateway Control Panel</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <div class="api-status-badge" id="apiStatusBadge">
+        <div class="status-dot" id="apiStatusDot"></div>
+        <span id="apiStatusText">Checking TerminalX API...</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btnCheckApi">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+        Check Token
+      </button>
+      <a href="/" class="btn btn-primary btn-sm" style="text-decoration:none; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Main Portal
+      </a>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-container">
+    <div class="tabs-pill">
+      <button class="tab-btn active" data-tab="paylinks">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Payment Links
+      </button>
+      <button class="tab-btn" data-tab="transactions">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Transactions
+      </button>
+      <button class="tab-btn" data-tab="settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        API & Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Panels -->
+  <main class="main-wrapper">
+
+    <!-- Tab 1: Payment Link Generator -->
+    <section class="tab-panel active" id="panel-paylinks">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Instant Payment Link Generator</h2>
+            <p class="card-subtitle">Create shareable links to send directly to your customers</p>
+          </div>
+        </div>
+
+        <form id="linkForm" class="form-grid">
+          <div class="form-group">
+            <label for="linkAmount">Fixed Amount (INR)</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">₹</span>
+              <input type="number" id="linkAmount" class="has-prefix" min="1" value="299" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="linkDesc">Product / Service Name</label>
+            <input type="text" id="linkDesc" value="VIP Access Plan" required>
+          </div>
+          <div class="form-group full-width">
+            <button type="submit" class="btn btn-primary">Generate Shareable Link</button>
+          </div>
+        </form>
+
+        <div id="generatedLinkBox" style="display:none; margin-top: 25px; padding: 20px; background: rgba(255,23,68,0.04); border: 1px dashed var(--primary); border-radius: var(--radius-sm);">
+          <label>Your Shareable Payment Link</label>
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <input type="text" id="generatedLinkInput" readonly style="font-family: monospace;">
+            <button class="btn btn-secondary" id="btnCopyLink">Copy</button>
+            <a href="#" target="_blank" class="btn btn-primary" id="btnOpenLink">Open</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Transactions -->
+    <section class="tab-panel" id="panel-transactions">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Transaction History</h2>
+            <p class="card-subtitle">Live records of all orders, payments, and UTRs</p>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="btnRefreshTxns">Refresh</button>
+            <button class="btn btn-secondary btn-sm" id="btnClearDemoTxns" style="border-color: rgba(255,50,50,0.3); color:#ff6b6b;">Clear Pending</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Engine</th>
+                <th>Status</th>
+                <th>UTR / Ref</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="txnTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading transactions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: API & Settings -->
+    <section class="tab-panel" id="panel-settings">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Gateway Configuration & Diagnostics</h2>
+            <p class="card-subtitle">Manage TerminalX API Token, Target UPI ID, and routing modes</p>
+          </div>
+        </div>
+
+        <form id="settingsForm" class="form-grid">
+          <div class="form-group">
+            <label for="settingToken">TerminalX User Token</label>
+            <input type="text" id="settingToken" value="79ed535e58c8352bc5e9324130e39cc1" required style="font-family: monospace;">
+          </div>
+
+          <div class="form-group">
+            <label for="settingMode">Payment Routing Mode</label>
+            <select id="settingMode">
+              <option value="hybrid">Hybrid (TerminalX first, auto-fallback to Direct UPI)</option>
+              <option value="direct">Direct UPI Only (Instant QR with your UPI ID)</option>
+              <option value="terminalx">TerminalX Strict (Fails if TerminalX plan is inactive)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="settingMerchantUpi">Merchant UPI ID (For Direct Payments)</label>
+            <input type="text" id="settingMerchantUpi" value="paytm.s3tuyo9@pty" placeholder="e.g. yourname@paytm">
+          </div>
+
+          <div class="form-group">
+            <label for="settingMerchantName">Merchant Display Name</label>
+            <input type="text" id="settingMerchantName" value="SS EMPIRE">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="settingWebhook">Webhook URL (Optional)</label>
+            <input type="url" id="settingWebhook" placeholder="https://yourdomain.com/api/payment-webhook">
+          </div>
+
+          <div class="form-group full-width" style="display:flex; gap:12px;">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <button type="button" class="btn btn-secondary" id="btnTestDiagnostics">Run Token Diagnostics</button>
+          </div>
+        </form>
+
+        <!-- Diagnostics Output Box -->
+        <div id="diagnosticsBox" style="display:none; margin-top:25px; padding:20px; background:#08090c; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          <h4 style="font-size:0.95rem; margin-bottom:10px; color:var(--primary);">TerminalX Live API Response:</h4>
+          <pre id="diagnosticsOutput" style="font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:#f5f7fa; background:rgba(255,255,255,0.02); padding:14px; border-radius:6px; overflow-x:auto;"></pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

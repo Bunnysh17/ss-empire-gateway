@@ -89,6 +89,11 @@ def serve_pay():
     return send_from_directory('static', 'pay.html')
 
 
+@app.route('/admin')
+def serve_admin():
+    return send_from_directory('static', 'admin.html')
+
+
 @app.route('/api/config', methods=['GET'])
 def get_config():
     cfg = load_config()
