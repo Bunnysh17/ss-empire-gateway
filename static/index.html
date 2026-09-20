@@ -325,7 +325,16 @@
     .app-pill:hover {
       background: rgba(255, 255, 255, 0.09);
       color: #ffffff;
+      border-color: rgba(255, 23, 68, 0.35);
       transform: translateY(-1px);
+    }
+
+    .app-pill-icon {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      flex-shrink: 0;
+      border-radius: 4px;
     }
 
     /* Trust Highlights */
@@ -525,20 +534,20 @@
         <div class="apps-title">Supported UPI Applications</div>
         <div class="apps-icons-row">
           <div class="app-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#00e676"><circle cx="12" cy="12" r="10"/></svg>
-            Google Pay
+            <img src="icon_gpay.svg" alt="Google Pay" class="app-pill-icon">
+            <span>Google Pay</span>
           </div>
           <div class="app-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#7000ff"><circle cx="12" cy="12" r="10"/></svg>
-            PhonePe
+            <img src="icon_phonepe.svg" alt="PhonePe" class="app-pill-icon">
+            <span>PhonePe</span>
           </div>
           <div class="app-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#00b0ff"><circle cx="12" cy="12" r="10"/></svg>
-            Paytm
+            <img src="icon_paytm_square.svg" alt="Paytm" class="app-pill-icon">
+            <span>Paytm</span>
           </div>
           <div class="app-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffab00"><circle cx="12" cy="12" r="10"/></svg>
-            BHIM UPI
+            <img src="icon_bhim_square.svg" alt="BHIM UPI" class="app-pill-icon">
+            <span>BHIM UPI</span>
           </div>
         </div>
       </div>
