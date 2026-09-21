@@ -156,14 +156,21 @@ function initForms() {
   checkoutForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnPayNow');
-    const custName = document.getElementById('custName')?.value.trim() || 'Customer';
+    const custName = document.getElementById('custName')?.value.trim() || '';
     const rawMobile = document.getElementById('custMobile')?.value.trim() || '';
     const cleanMobile = rawMobile.replace(/[^0-9]/g, '');
     const amount = document.getElementById('custAmount')?.value || '1';
     const remark = document.getElementById('custRemark')?.value || 'Service Payment';
 
+    if (!custName || custName.length < 2) {
+      alert("Kripya apna poora naam likhein (minimum 2 characters).");
+      document.getElementById('custName')?.focus();
+      return;
+    }
+
     if (!cleanMobile || cleanMobile.length < 10) {
       alert("Kripya apna valid 10-digit mobile number enter karein.");
+      document.getElementById('custMobile')?.focus();
       return;
     }
 
