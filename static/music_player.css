@@ -37,7 +37,7 @@
 .bgm-floating-widget:hover,
 .bgm-floating-widget:focus-within,
 .bgm-floating-widget.expanded {
-  max-width: 330px; /* Smoothly expands */
+  max-width: 260px; /* Smoothly expands */
   padding: 4px 14px 4px 4px;
   border-color: rgba(255, 23, 68, 0.85);
   box-shadow: 
@@ -166,6 +166,18 @@
   box-shadow: 0 0 14px rgba(255, 23, 68, 0.5);
 }
 
+/* Volume Percentage Text */
+.bgm-vol-text {
+  font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #ff5252;
+  min-width: 32px;
+  text-align: right;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+
 /* Volume Control */
 .bgm-vol-wrap {
   display: flex;
@@ -286,7 +298,7 @@
   .bgm-floating-widget:hover,
   .bgm-floating-widget:focus-within,
   .bgm-floating-widget.expanded {
-    max-width: 280px;
+    max-width: 235px;
     padding: 3px 10px 3px 3px;
   }
 
@@ -296,7 +308,7 @@
   }
 
   .bgm-vol-slider {
-    width: 55px;
+    width: 65px;
     height: 20px;
   }
 }

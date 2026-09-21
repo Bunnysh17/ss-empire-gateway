@@ -111,7 +111,7 @@ class PaymentStatusView(discord.ui.View):
 class PaymentDetailsModal(discord.ui.Modal, title="💳 Enter Payment Details"):
     cust_name = discord.ui.TextInput(
         label="Full Name / आपका नाम",
-        placeholder="Enter your full name (e.g. Bunny Sharma)",
+        placeholder="Enter your full name",
         required=True,
         max_length=50
     )

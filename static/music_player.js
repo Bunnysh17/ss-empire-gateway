@@ -1,148 +1,199 @@
-// SS EMPIRE - Floating Background Music Player
-// Featuring Suyash Logo (Always Spinning), Hover to Expand Volume Drawer, Autoplay
+// SS EMPIRE - Background Video Sound Controller
+// Controls the audio directly from the background video in 1:1 hardware sync
+// Featuring spinning Suyash logo, Mute/Unmute toggle, and Volume adjustment (+ / - & Slider)
 
 (function() {
-  const AUDIO_SRC = 'bgm.mp3';
-  const DEFAULT_VOL = 0.5;
-
-  let audio = null;
-  let isPlaying = false;
-  let savedVol = parseFloat(localStorage.getItem('ssempire_bgm_vol'));
+  const DEFAULT_VOL = 0.6;
+  let video = null;
+  let isMuted = true;
+  let savedVol = parseFloat(localStorage.getItem('ssempire_video_vol'));
   if (isNaN(savedVol) || savedVol === null) {
     savedVol = DEFAULT_VOL;
   }
+  let userPrefMuted = localStorage.getItem('ssempire_video_muted');
+  // Default to unmuted on user preference unless explicitly muted by user
+  let wantsSound = userPrefMuted !== 'true';
 
-  function initPlayer() {
+  function getVideoElement() {
+    return document.getElementById('bgVideo') || document.querySelector('video.video-bg') || document.querySelector('video');
+  }
+
+  function initController() {
     if (document.getElementById('bgmWidget')) return;
+    video = getVideoElement();
+    if (!video) {
+      setTimeout(initController, 250);
+      return;
+    }
 
-    // 1. Create Audio Element
-    audio = document.createElement('audio');
-    audio.id = 'ssEmpireBgm';
-    audio.src = AUDIO_SRC;
-    audio.loop = true;
-    audio.preload = 'auto';
-    audio.volume = savedVol;
-    document.body.appendChild(audio);
+    // Set initial video audio parameters
+    video.volume = savedVol;
+    // Always start muted initially so browser allows background autoplay without blocking
+    video.muted = true;
+    isMuted = true;
 
-    // 2. Create Floating Widget DOM
-    // Collapsed by default: Only the spinning Suyash disc is visible
-    // Hover/Touch: Expands the controls drawer revealing waves, play/pause, mute, and glowing red volume slider
+    // Build Floating Sound Controller Widget DOM
     const widget = document.createElement('div');
     widget.className = 'bgm-floating-widget';
     widget.id = 'bgmWidget';
+    widget.setAttribute('role', 'region');
+    widget.setAttribute('aria-label', 'Background Video Sound Controls');
+
     widget.innerHTML = `
-      <div class="bgm-disc" id="bgmDiscBtn" title="SS EMPIRE - Suyash (Click to Toggle Play)">
-        <img src="logo.png" alt="Suyash" class="bgm-logo-img">
+      <div class="bgm-disc" id="bgmDiscBtn" title="Sound Control (Click to Mute/Unmute)">
+        <img src="logo.png" alt="SS EMPIRE" class="bgm-logo-img">
       </div>
 
       <div class="bgm-controls-drawer" id="bgmDrawer">
-        <div class="bgm-waves" id="bgmWaves" title="Music Status">
+        <!-- Sound wave visualizer -->
+        <div class="bgm-waves" id="bgmWaves" title="Audio Status">
           <span></span><span></span><span></span><span></span>
         </div>
 
-        <button class="bgm-toggle-btn" id="bgmPlayBtn" title="Play / Pause">
-          <svg id="iconBgmPlay" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        <!-- Main Mute/Unmute Toggle (Replaces pause with sound mute) -->
+        <button type="button" class="bgm-toggle-btn" id="bgmMuteToggleBtn" title="Mute / Unmute Sound">
+          <!-- Unmuted / Sound On Icon -->
+          <svg id="iconSoundOn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
           </svg>
-          <svg id="iconBgmPause" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16"></rect>
-            <rect x="14" y="4" width="4" height="16"></rect>
+          <!-- Muted / Sound Off Icon -->
+          <svg id="iconSoundMuted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
           </svg>
         </button>
 
+        <!-- Volume Slider Wrap -->
         <div class="bgm-vol-wrap">
-          <button class="bgm-mute-btn" id="bgmMuteBtn" title="Mute / Unmute">
-            <svg id="iconVolHigh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            </svg>
-            <svg id="iconVolMuted" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-              <line x1="23" y1="9" x2="17" y2="15"></line>
-              <line x1="17" y1="9" x2="23" y2="15"></line>
-            </svg>
-          </button>
           <input 
             type="range" 
             id="bgmSlider" 
             class="bgm-vol-slider" 
             min="0" 
             max="1" 
-            step="0.01" 
+            step="0.02" 
             value="${savedVol}" 
-            title="Volume Control"
+            title="Drag to Adjust Volume"
           >
         </div>
+
+        <!-- Volume Level Badge -->
+        <span class="bgm-vol-text" id="bgmVolPct">${Math.round(savedVol * 100)}%</span>
       </div>
     `;
+
     document.body.appendChild(widget);
 
-    // 3. Bind UI Controls
-    const playBtn = document.getElementById('bgmPlayBtn');
+    // Elements
     const discBtn = document.getElementById('bgmDiscBtn');
+    const muteToggleBtn = document.getElementById('bgmMuteToggleBtn');
     const slider = document.getElementById('bgmSlider');
-    const muteBtn = document.getElementById('bgmMuteBtn');
-    const iconPlay = document.getElementById('iconBgmPlay');
-    const iconPause = document.getElementById('iconBgmPause');
-    const iconHigh = document.getElementById('iconVolHigh');
-    const iconMuted = document.getElementById('iconVolMuted');
+    const volPctText = document.getElementById('bgmVolPct');
+    const iconSoundOn = document.getElementById('iconSoundOn');
+    const iconSoundMuted = document.getElementById('iconSoundMuted');
 
-    function updateUi(playing) {
-      isPlaying = playing;
-      if (playing) {
+    function updateUi(active) {
+      isMuted = !active;
+      if (active) {
         widget.classList.add('playing');
-        iconPlay.style.display = 'none';
-        iconPause.style.display = 'block';
+        iconSoundOn.style.display = 'block';
+        iconSoundMuted.style.display = 'none';
+        discBtn.title = "Sound Active (Click to Mute)";
+        muteToggleBtn.title = "Mute Sound";
       } else {
         widget.classList.remove('playing');
-        iconPlay.style.display = 'block';
-        iconPause.style.display = 'none';
+        iconSoundOn.style.display = 'none';
+        iconSoundMuted.style.display = 'block';
+        discBtn.title = "Sound Muted (Click to Unmute)";
+        muteToggleBtn.title = "Unmute Sound";
       }
     }
 
-    function togglePlay() {
-      if (isPlaying) {
-        audio.pause();
+    function updateSliderFill(val) {
+      const pct = Math.round(val * 100);
+      slider.style.setProperty('--vol-fill', pct + '%');
+      if (volPctText) {
+        volPctText.textContent = (isMuted ? 'MUTE' : (pct + '%'));
+      }
+    }
+    updateSliderFill(savedVol);
+
+    function setVolume(val, unmuteIfZero = false) {
+      val = Math.max(0, Math.min(1, Math.round(val * 20) / 20));
+      video.volume = val;
+      savedVol = val;
+      slider.value = val;
+      localStorage.setItem('ssempire_video_vol', val);
+
+      if (val === 0) {
+        video.muted = true;
         updateUi(false);
       } else {
-        audio.play().then(() => {
+        if (unmuteIfZero || isMuted) {
+          video.muted = false;
           updateUi(true);
-        }).catch(() => {});
+          localStorage.setItem('ssempire_video_muted', 'false');
+        }
+      }
+      updateSliderFill(val);
+    }
+
+    function toggleMute() {
+      if (!video) return;
+
+      if (!video.muted && video.volume > 0) {
+        // Mute
+        video.muted = true;
+        updateUi(false);
+        updateSliderFill(savedVol);
+        localStorage.setItem('ssempire_video_muted', 'true');
+      } else {
+        // Unmute
+        video.muted = false;
+        if (video.volume === 0) {
+          setVolume(savedVol > 0 ? savedVol : DEFAULT_VOL);
+        }
+        updateUi(true);
+        updateSliderFill(video.volume);
+        localStorage.setItem('ssempire_video_muted', 'false');
+
+        // Ensure video is playing
+        if (video.paused) {
+          video.play().catch(() => {});
+        }
       }
     }
 
-    playBtn.addEventListener('click', (e) => {
+    // Toggle button click
+    muteToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      togglePlay();
+      toggleMute();
     });
 
-    // Disc click behavior:
-    // On desktop: toggles play/pause
-    // On mobile / touch: toggles expanded drawer
+    // Disc click
     discBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (window.matchMedia('(hover: none)').matches) {
+        // On touch screens, tap toggles drawer expansion
         widget.classList.toggle('expanded');
       } else {
-        togglePlay();
+        toggleMute();
       }
     });
 
-    // Slider Drag protection (keep open while dragging slider even if pointer moves outside)
-    let isDraggingSlider = false;
-    slider.addEventListener('mousedown', () => { isDraggingSlider = true; });
-    slider.addEventListener('touchstart', () => { isDraggingSlider = true; }, { passive: true });
+    // Slider Dragging
+    let isDragging = false;
+    slider.addEventListener('mousedown', () => { isDragging = true; });
+    slider.addEventListener('touchstart', () => { isDragging = true; }, { passive: true });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    window.addEventListener('touchend', () => { isDragging = false; });
 
-    window.addEventListener('mouseup', () => {
-      if (isDraggingSlider) {
-        isDraggingSlider = false;
-        if (!widget.matches(':hover')) {
-          widget.classList.remove('expanded');
-        }
-      }
-    });
-    window.addEventListener('touchend', () => {
-      isDraggingSlider = false;
+    slider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      setVolume(val, val > 0);
     });
 
     // Click outside to collapse on touch devices
@@ -152,94 +203,38 @@
       }
     });
 
-    function updateSliderFill(val) {
-      const pct = Math.round(val * 100);
-      slider.style.setProperty('--vol-fill', pct + '%');
+    // 4. Autounmute on first user gesture if user wants sound
+    function onFirstGesture() {
+      if (wantsSound && video.muted) {
+        video.muted = false;
+        video.volume = savedVol > 0 ? savedVol : DEFAULT_VOL;
+        updateUi(true);
+        updateSliderFill(video.volume);
+      }
+      cleanupGestureListeners();
     }
-    updateSliderFill(savedVol);
 
-    // Volume Slider
-    slider.addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      audio.volume = val;
-      savedVol = val;
-      localStorage.setItem('ssempire_bgm_vol', val);
-      updateSliderFill(val);
-
-      if (val === 0) {
-        iconHigh.style.display = 'none';
-        iconMuted.style.display = 'block';
-      } else {
-        iconHigh.style.display = 'block';
-        iconMuted.style.display = 'none';
-        if (!isPlaying) {
-          audio.play().then(() => updateUi(true)).catch(() => {});
-        }
-      }
-    });
-
-    // Mute Toggle
-    muteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (audio.volume > 0) {
-        audio.volume = 0;
-        slider.value = 0;
-        updateSliderFill(0);
-        iconHigh.style.display = 'none';
-        iconMuted.style.display = 'block';
-      } else {
-        const restore = savedVol > 0 ? savedVol : DEFAULT_VOL;
-        audio.volume = restore;
-        slider.value = restore;
-        updateSliderFill(restore);
-        iconHigh.style.display = 'block';
-        iconMuted.style.display = 'none';
-      }
-    });
-
-    // 4. Instant Autoplay on website load + first click/touch trigger
-    function forceAutoplay() {
-      function tryPlay() {
-        const p = audio.play();
-        if (p !== undefined) {
-          p.then(() => {
-            updateUi(true);
-            cleanupListeners();
-          }).catch(() => {
-            updateUi(false);
-          });
-        }
-      }
-
-      function onFirstUserGesture() {
-        tryPlay();
-      }
-
-      function cleanupListeners() {
-        const events = ['click', 'pointerdown', 'mousedown', 'touchstart', 'touchend', 'keydown'];
-        events.forEach(evt => {
-          document.removeEventListener(evt, onFirstUserGesture, true);
-          window.removeEventListener(evt, onFirstUserGesture, true);
-        });
-      }
-
-      // Try playing immediately on page load
-      tryPlay();
-
-      // Intercept ANY click or touch anywhere on the page immediately
-      const events = ['click', 'pointerdown', 'mousedown', 'touchstart', 'touchend', 'keydown'];
-      events.forEach(evt => {
-        document.addEventListener(evt, onFirstUserGesture, { capture: true });
-        window.addEventListener(evt, onFirstUserGesture, { capture: true });
+    function cleanupGestureListeners() {
+      ['click', 'pointerdown', 'touchstart', 'keydown'].forEach(evt => {
+        document.removeEventListener(evt, onFirstGesture, true);
+        window.removeEventListener(evt, onFirstGesture, true);
       });
     }
 
-    forceAutoplay();
+    ['click', 'pointerdown', 'touchstart', 'keydown'].forEach(evt => {
+      document.addEventListener(evt, onFirstGesture, { capture: true, once: true });
+      window.addEventListener(evt, onFirstGesture, { capture: true, once: true });
+    });
+
+    // If already unmuted somehow
+    if (!video.muted && !video.paused) {
+      updateUi(true);
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPlayer);
+    document.addEventListener('DOMContentLoaded', initController);
   } else {
-    initPlayer();
+    initController();
   }
 })();

@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <link rel="icon" type="image/png" href="logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="music_player.css">
   <style>
     :root {
       --rzp-blue: #ff1744;
@@ -32,7 +33,7 @@
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-    /* Video Background */
+    /* Video Background - High Performance & Crystal Clear */
     .video-bg-container {
       position: fixed;
       top: 0;
@@ -42,12 +43,15 @@
       z-index: -2;
       overflow: hidden;
       pointer-events: none;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
     }
     .video-bg {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      filter: brightness(0.5) contrast(1.18) saturate(1.25);
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
     }
     .video-bg-overlay {
       position: absolute;
@@ -56,10 +60,9 @@
       width: 100%;
       height: 100%;
       background: 
-        radial-gradient(circle at 50% 20%, rgba(255, 23, 68, 0.12) 0%, transparent 65%),
-        linear-gradient(180deg, rgba(6, 8, 14, 0.72) 0%, rgba(4, 5, 9, 0.95) 100%);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+        radial-gradient(circle at 50% 20%, rgba(255, 23, 68, 0.08) 0%, transparent 65%),
+        linear-gradient(180deg, rgba(6, 8, 14, 0.38) 0%, rgba(4, 5, 9, 0.68) 100%);
+      pointer-events: none;
     }
     body {
       background: var(--bg-color);
@@ -74,13 +77,21 @@
       position: relative;
     }
     .info-card, .checkout-card {
-      backdrop-filter: blur(24px) !important;
-      -webkit-backdrop-filter: blur(24px) !important;
-      border: 1px solid rgba(255, 23, 68, 0.2) !important;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 23, 68, 0.15) !important;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(18, 22, 34, 0.65) 45%, rgba(10, 13, 22, 0.82) 100%) !important;
+      backdrop-filter: blur(24px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 
+        0 30px 80px -15px rgba(0, 0, 0, 0.9),
+        0 0 50px -10px rgba(255, 23, 68, 0.28),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5) !important;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      border-radius: 20px;
     }
 
-    /* Top Floating Pill Navbar */
+    /* Top Floating Pill Navbar - Glassmorphic */
     .top-nav {
       position: fixed;
       top: 20px;
@@ -93,13 +104,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(20, 24, 30, 0.92);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(180deg, rgba(20, 26, 38, 0.72) 0%, rgba(14, 18, 28, 0.6) 100%);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 30px;
       z-index: 100;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
     .nav-brand {
       font-size: 17px;
@@ -451,82 +462,18 @@
       font-size: 13px;
     }
 
-    /* Floating 3D Credit Card in Bottom Corner */
-    .floating-3d-card-container {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      perspective: 1200px;
-      z-index: 50;
-      pointer-events: none;
-    }
     @media (max-width: 768px) {
-      .floating-3d-card-container { display: none; }
+      .info-card, .checkout-card {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(14, 17, 26, 0.96) !important;
+      }
+      .top-nav {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(20, 24, 30, 0.98) !important;
+      }
     }
-    .floating-3d-card {
-      width: 160px;
-      height: 100px;
-      position: relative;
-      transform-style: preserve-3d;
-      animation: floatSpin 12s infinite linear;
-    }
-    .floating-3d-card .card-front, .floating-3d-card .card-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 8px;
-      backface-visibility: hidden;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #fff;
-      padding: 10px;
-      overflow: hidden;
-    }
-    .floating-3d-card .card-front::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-      transform: rotate(45deg);
-      animation: cardShine 3s infinite linear;
-    }
-    .floating-3d-card .card-back {
-      transform: rotateY(180deg);
-      padding: 0;
-      background: #0f172a;
-    }
-    .floating-3d-card .stripe {
-      width: 100%;
-      height: 20px;
-      background: #000;
-      margin-top: 12px;
-    }
-    .floating-3d-card .cvv {
-      width: 35px;
-      height: 14px;
-      background: #fff;
-      color: #000;
-      font-size: 9px;
-      text-align: center;
-      line-height: 14px;
-      margin: 8px auto 0 8px;
-    }
-    .floating-3d-card .chip { font-size: 16px; color: #fbbf24; margin-bottom: 18px; }
-    .floating-3d-card .wifi { font-size: 12px; position: absolute; right: 12px; top: 12px; opacity: 0.8; }
-    .floating-3d-card .card-no { font-family: monospace; font-size: 10px; letter-spacing: 1px; margin-bottom: 6px; }
-    .floating-3d-card .card-name { font-size: 8px; opacity: 0.8; }
-    .floating-3d-card .card-logo { position: absolute; bottom: 8px; right: 10px; font-size: 20px; opacity: 0.9; }
-
-    @keyframes floatSpin {
-      0% { transform: translateY(0) rotateX(16deg) rotateY(0deg) rotateZ(-8deg); }
-      50% { transform: translateY(-16px) rotateX(8deg) rotateY(180deg) rotateZ(4deg); }
-      100% { transform: translateY(0) rotateX(16deg) rotateY(360deg) rotateZ(-8deg); }
-    }
-    @keyframes cardShine { 0% { left: -100%; } 100% { left: 100%; } }
 
     /* Success Overlay with Golden 3D Coin Flip */
     .success-overlay {
@@ -700,7 +647,7 @@
 
   <!-- Video Background -->
   <div class="video-bg-container">
-    <video autoplay muted loop playsinline class="video-bg">
+    <video autoplay muted loop playsinline class="video-bg" id="bgVideo">
       <source src="bg-1.mp4" type="video/mp4">
     </video>
     <div class="video-bg-overlay"></div>
@@ -792,8 +739,30 @@
         </div>
 
         <!-- Glowing Dynamic QR Code -->
-        <div class="qr-container" id="qrWrapper">
+        <div class="qr-container" id="qrWrapper" style="position: relative;">
           <div id="payQrCode"></div>
+          <div id="qrExpiredOverlay" style="display:none; position:absolute; inset:0; background:rgba(10, 13, 22, 0.9); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-radius:12px; flex-direction:column; align-items:center; justify-content:center; z-index:10; padding:15px; text-align:center;">
+            <i class="fas fa-lock" style="font-size:36px; color:#ff1744; margin-bottom:10px; filter:drop-shadow(0 0 10px rgba(255,23,68,0.6));"></i>
+            <div style="font-size:14px; font-weight:800; color:#ff5252; margin-bottom:4px; letter-spacing:0.5px;">QR CODE EXPIRED</div>
+            <div style="font-size:11px; color:#94a3b8; line-height:1.4;">Session timed out after 10 mins</div>
+          </div>
+        </div>
+
+        <div id="expiredActionBanner" style="display:none; margin:12px 14px 6px; padding:14px 16px; background:linear-gradient(135deg, rgba(255,23,68,0.18) 0%, rgba(20,24,36,0.9) 100%); border:1px solid rgba(255,23,68,0.45); border-radius:14px; text-align:center; box-shadow:0 8px 25px rgba(255,23,68,0.25);">
+          <div style="font-size:13px; font-weight:700; color:#ff5252; margin-bottom:6px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <i class="fas fa-exclamation-triangle"></i> Payment Session Expired
+          </div>
+          <div style="font-size:11.5px; color:#cbd5e1; margin-bottom:12px; line-height:1.4;">
+            For security, this payment session has expired after 10 minutes. You cannot pay or verify after expiration.
+          </div>
+          <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+            <button type="button" onclick="startNewPayment()" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:linear-gradient(135deg, #ff1744, #d50000); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 4px 15px rgba(255,23,68,0.5); text-transform:uppercase; letter-spacing:0.5px;">
+              <i class="fas fa-redo-alt"></i> Make New Payment
+            </button>
+            <a href="/" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:rgba(255,255,255,0.08); color:#cbd5e1; border:1px solid rgba(255,255,255,0.18); border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;">
+              <i class="fas fa-home"></i> Dashboard
+            </a>
+          </div>
         </div>
 
         <div class="scan-text">
@@ -882,22 +851,7 @@
     <button class="success-btn" onclick="window.location.href='/'">Return to Dashboard</button>
   </div>
 
-  <!-- Floating 3D Card Ambient Graphic -->
-  <div class="floating-3d-card-container">
-    <div class="floating-3d-card">
-      <div class="card-front">
-        <i class="fas fa-microchip chip"></i>
-        <i class="fas fa-wifi wifi"></i>
-        <div class="card-no">**** **** **** 9999</div>
-        <div class="card-name">SS EMPIRE</div>
-        <div class="card-logo"><i class="fab fa-cc-visa"></i></div>
-      </div>
-      <div class="card-back">
-        <div class="stripe"></div>
-        <div class="cvv">***</div>
-      </div>
-    </div>
-  </div>
+  <!-- Success Overlay -->
 
   <script>
     function toggleTheme() {
@@ -940,17 +894,47 @@
     }
 
     let paymentProcessed = false;
+    let isExpired = false;
     let pollInterval = null;
+    let countdownInterval = null;
     let currentOrderId = null;
     let qrInstance = null;
 
-    // Read Query Params
+    // Read Query Params & Session State
     const urlParams = new URLSearchParams(window.location.search);
-    const paramOrderId = urlParams.get('id') || ('TXN' + Date.now().toString().slice(-8));
+    let urlOrderId = urlParams.get('id');
+    const storedOrderId = sessionStorage.getItem('active_pay_order_id');
+
+    // Ensure stable order ID across page refreshes
+    let paramOrderId = urlOrderId;
+    if (!paramOrderId && storedOrderId) {
+      paramOrderId = storedOrderId;
+    }
+    if (!paramOrderId) {
+      paramOrderId = 'TXN' + Date.now().toString().slice(-8) + Math.random().toString(36).substring(2, 5).toUpperCase();
+    }
+
     const paramAmount = urlParams.get('amount') || '1';
     const paramDesc = urlParams.get('desc') || 'Payment';
     const paramName = urlParams.get('name') || urlParams.get('customer_name') || '';
     const paramMobile = urlParams.get('mobile') || urlParams.get('customer_mobile') || '';
+
+    // Update browser URL query string immediately without reloading, so page refresh (F5) retains same order ID
+    if (!urlOrderId) {
+      urlParams.set('id', paramOrderId);
+      if (!urlParams.get('amount')) urlParams.set('amount', paramAmount);
+      const newUrl = window.location.pathname + '?' + urlParams.toString();
+      window.history.replaceState({ orderId: paramOrderId }, '', newUrl);
+    }
+    sessionStorage.setItem('active_pay_order_id', paramOrderId);
+
+    function startNewPayment() {
+      sessionStorage.removeItem('active_pay_order_id');
+      const newId = 'TXN' + Date.now().toString().slice(-8) + Math.random().toString(36).substring(2, 5).toUpperCase();
+      const params = new URLSearchParams(window.location.search);
+      params.set('id', newId);
+      window.location.href = window.location.pathname + '?' + params.toString();
+    }
 
     async function initCheckout() {
       currentOrderId = paramOrderId;
@@ -969,13 +953,13 @@
         document.getElementById('summaryCustomerMobile').textContent = paramMobile;
       }
 
-      // Check if order already exists
+      // Check if order already exists in backend to retrieve real expiration deadline
       try {
         const orderResp = await fetch(`/api/order-details/${currentOrderId}`);
         const orderData = await orderResp.json();
 
         if (orderData.success && orderData.order) {
-          applyOrder(orderData.order, orderData.merchant_name);
+          applyOrder(orderData.order, orderData.merchant_name, orderData);
         } else {
           // Create new order via API
           createNewOrder();
@@ -1000,14 +984,102 @@
         });
         const res = await resp.json();
         if (res.success) {
-          applyOrder(res, res.merchant_name || 'SS EMPIRE');
+          applyOrder(res, res.merchant_name || 'SS EMPIRE', res);
         }
       } catch (err) {
         console.error("Order creation error:", err);
       }
     }
 
-    function applyOrder(data, merchantName) {
+    function handleOrderExpired() {
+      isExpired = true;
+      if (pollInterval) clearInterval(pollInterval);
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      // 1. Timer element
+      const el = document.getElementById("timer");
+      if (el) {
+        el.innerHTML = `<span style="color:#ff1744; font-weight:800; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-times-circle"></i> EXPIRED</span>`;
+      }
+
+      // 2. Blur QR & Show Lock Overlay
+      const qrEl = document.getElementById('payQrCode');
+      if (qrEl) {
+        qrEl.style.filter = 'blur(4px) grayscale(0.8)';
+        qrEl.style.opacity = '0.35';
+      }
+      const expiredOverlay = document.getElementById('qrExpiredOverlay');
+      if (expiredOverlay) {
+        expiredOverlay.style.display = 'flex';
+      }
+
+      // 3. Show Action Banner
+      const actionBanner = document.getElementById('expiredActionBanner');
+      if (actionBanner) {
+        actionBanner.style.display = 'block';
+      }
+
+      // 4. Disable UPI App Buttons
+      ['btnPaytm', 'btnPhonepe', 'btnGpay', 'btnOther'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.style.pointerEvents = 'none';
+          btn.style.opacity = '0.3';
+          btn.style.filter = 'grayscale(1)';
+          btn.removeAttribute('href');
+        }
+      });
+
+      // 5. Disable UTR input & button
+      const utrInput = document.getElementById('payUtrInput');
+      const utrBtn = document.getElementById('btnPayVerifyUtr');
+      if (utrInput) {
+        utrInput.disabled = true;
+        utrInput.placeholder = "Session Expired";
+        utrInput.style.opacity = '0.5';
+      }
+      if (utrBtn) {
+        utrBtn.disabled = true;
+        utrBtn.style.opacity = '0.5';
+        utrBtn.style.cursor = 'not-allowed';
+      }
+
+      // 6. Close verify modal
+      closeVerifyModal();
+    }
+
+    function startTimer(initialSeconds) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      const targetTimestamp = Date.now() + (initialSeconds * 1000);
+      const el = document.getElementById("timer");
+
+      function tick() {
+        const now = Date.now();
+        const diff = Math.max(0, Math.ceil((targetTimestamp - now) / 1000));
+
+        if (diff <= 0) {
+          clearInterval(countdownInterval);
+          handleOrderExpired();
+          return;
+        }
+
+        const min = Math.floor(diff / 60);
+        const sec = diff % 60;
+        const formatted = `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+        if (diff <= 120) {
+          el.innerHTML = `<span style="color:#ff1744; font-weight:800; animation:pulse 1s infinite;"><i class="fas fa-exclamation-circle"></i> ${formatted}</span>`;
+        } else {
+          el.innerHTML = `<span style="color:#00e676;"><i class="fas fa-stopwatch"></i></span> ${formatted}`;
+        }
+      }
+
+      tick();
+      countdownInterval = setInterval(tick, 1000);
+    }
+
+    function applyOrder(data, merchantName, details) {
       const name = merchantName || 'SS EMPIRE';
       document.getElementById('summaryMerchantName').textContent = name;
       document.getElementById('cardMerchantName').textContent = name;
@@ -1020,6 +1092,28 @@
       if (data.customer_mobile && data.customer_mobile !== '9876543210') {
         document.getElementById('summaryMobRow').style.display = 'flex';
         document.getElementById('summaryCustomerMobile').textContent = data.customer_mobile;
+      }
+
+      // Check if already expired
+      const remainingSec = (details && details.remaining_seconds !== undefined)
+        ? details.remaining_seconds
+        : (data.remaining_seconds !== undefined ? data.remaining_seconds : 600);
+
+      const isExpiredState = data.status === 'EXPIRED' || (details && details.is_expired) || remainingSec <= 0;
+
+      if (isExpiredState) {
+        handleOrderExpired();
+        return;
+      }
+
+      // If already paid
+      if (data.status === 'SUCCESS' || data.status === 'COMPLETED') {
+        paymentProcessed = true;
+        document.getElementById('receiptAmount').textContent = '₹' + (data.amount || paramAmount);
+        document.getElementById('receiptOrderId').textContent = currentOrderId;
+        document.getElementById('receiptUtr').textContent = data.utr || 'VERIFIED';
+        document.getElementById('successOverlay').classList.add('active');
+        return;
       }
 
       const upiString = data.upi_intent || data.qr_data || `upi://pay?pa=paytm.s3tuyo9@pty&pn=SS%20EMPIRE&am=${paramAmount}&cu=INR&tn=${currentOrderId}`;
@@ -1042,23 +1136,9 @@
       document.getElementById('btnGpay').href = upiString;
       document.getElementById('btnOther').href = upiString;
 
-      // Start Countdown and Polling
-      startTimer(10, 0);
+      // Start Countdown and Polling with real remaining seconds
+      startTimer(remainingSec);
       startPolling();
-    }
-
-    function startTimer(m, s) {
-      let tot = m * 60 + s;
-      const el = document.getElementById("timer");
-      const iv = setInterval(() => {
-        const min = Math.floor(tot / 60);
-        const sec = tot % 60;
-        el.textContent = `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
-        if (tot-- <= 0) {
-          clearInterval(iv);
-          el.textContent = "Expired";
-        }
-      }, 1000);
     }
 
     function startPolling() {
@@ -1067,7 +1147,7 @@
     }
 
     async function checkStatus() {
-      if (paymentProcessed || !currentOrderId) return;
+      if (paymentProcessed || isExpired || !currentOrderId) return;
       try {
         const resp = await fetch('/api/check-status', {
           method: 'POST',
@@ -1075,9 +1155,14 @@
           body: JSON.stringify({ order_id: currentOrderId })
         });
         const d = await resp.json();
+        if (d.status === 'EXPIRED') {
+          handleOrderExpired();
+          return;
+        }
         if (d.status === 'SUCCESS' || d.status === 'COMPLETED') {
           paymentProcessed = true;
           clearInterval(pollInterval);
+          if (countdownInterval) clearInterval(countdownInterval);
           closeVerifyModal();
 
           // Show receipt details
@@ -1134,5 +1219,6 @@
     initCheckout();
   </script>
 
+  <script src="music_player.js"></script>
 </body>
 </html>

@@ -569,6 +569,44 @@ def create_order():
     terminalx_result = None
     terminalx_error = None
 
+    # If order_id already exists, return existing order session to keep timer synced
+    existing_txn = get_transaction(order_id)
+    if existing_txn:
+        now_ts = int(time.time())
+        expires_at = existing_txn.get('expires_at')
+        if not expires_at and existing_txn.get('date'):
+            try:
+                dt = datetime.strptime(existing_txn.get('date', ''), '%Y-%m-%d %H:%M:%S')
+                expires_at = int(dt.timestamp()) + 600
+            except Exception:
+                expires_at = now_ts + 600
+        elif not expires_at:
+            expires_at = now_ts + 600
+            
+        remaining_seconds = max(0, expires_at - now_ts)
+        if remaining_seconds <= 0 and existing_txn.get('status') == 'PENDING':
+            existing_txn['status'] = 'EXPIRED'
+            record_transaction(existing_txn)
+
+        return jsonify({
+            "success": True,
+            "order_id": order_id,
+            "amount": existing_txn.get('amount', amount),
+            "customer_name": existing_txn.get('customer_name', customer_name),
+            "merchant_name": merchant_name,
+            "merchant_upi": merchant_upi,
+            "upi_intent": existing_txn.get('upi_intent'),
+            "qr_data": existing_txn.get('qr_data') or existing_txn.get('upi_intent'),
+            "payment_url": existing_txn.get('payment_url') or f"{get_public_url()}/pay?id={order_id}&amount={existing_txn.get('amount', amount)}",
+            "qr_image_url": f"{get_public_url()}/api/qr-image/{order_id}",
+            "status": existing_txn.get('status'),
+            "created_at": existing_txn.get('created_at'),
+            "expires_at": expires_at,
+            "remaining_seconds": remaining_seconds,
+            "is_expired": (remaining_seconds <= 0 or existing_txn.get('status') == 'EXPIRED'),
+            "message": "Order session active"
+        })
+
     # Try TerminalX if mode is 'terminalx' or 'hybrid'
     if mode in ['terminalx', 'hybrid']:
         terminalx_tried = True
@@ -607,6 +645,8 @@ def create_order():
                     except Exception:
                         pass
 
+                now_ts = int(time.time())
+                expires_at = now_ts + 600  # Real 10-minute validity
                 txn = {
                     "order_id": order_id,
                     "amount": amount,
@@ -618,6 +658,8 @@ def create_order():
                     "payment_url": payment_url,
                     "upi_intent": upi_intent,
                     "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    "created_at": now_ts,
+                    "expires_at": expires_at,
                     "utr": None
                 }
                 record_transaction(txn)
@@ -631,6 +673,9 @@ def create_order():
                     "upi_intent": upi_intent,
                     "qr_data": upi_intent or payment_url,
                     "qr_image_url": f"{get_public_url()}/api/qr-image/{order_id}",
+                    "created_at": now_ts,
+                    "expires_at": expires_at,
+                    "remaining_seconds": 600,
                     "message": "Order created via TerminalX"
                 })
             else:
@@ -651,6 +696,8 @@ def create_order():
     # Fallback to Direct UPI / Sandbox Mode (hybrid fallback or direct mode)
     upi_intent = f"upi://pay?pa={merchant_upi}&pn={requests.utils.quote(merchant_name)}&am={amount}&cu=INR&tn={requests.utils.quote(order_id)}"
     
+    now_ts = int(time.time())
+    expires_at = now_ts + 600  # Real 10-minute validity
     txn = {
         "order_id": order_id,
         "amount": amount,
@@ -661,9 +708,13 @@ def create_order():
         "engine": "direct_upi",
         "upi_intent": upi_intent,
         "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "created_at": now_ts,
+        "expires_at": expires_at,
         "terminalx_error": terminalx_error if terminalx_tried else None,
         "utr": None
     }
+    payment_url = f"{get_public_url()}/pay?id={order_id}&amount={amount}&customer_name={requests.utils.quote(customer_name)}"
+    txn["payment_url"] = payment_url
     record_transaction(txn)
 
     return jsonify({
@@ -674,9 +725,13 @@ def create_order():
         "customer_name": customer_name,
         "merchant_name": merchant_name,
         "merchant_upi": merchant_upi,
+        "payment_url": payment_url,
         "upi_intent": upi_intent,
         "qr_data": upi_intent,
         "qr_image_url": f"{get_public_url()}/api/qr-image/{order_id}",
+        "created_at": now_ts,
+        "expires_at": expires_at,
+        "remaining_seconds": 600,
         "terminalx_attempted": terminalx_tried,
         "terminalx_error": terminalx_error,
         "message": "UPI Order created successfully (Direct UPI Intent & Dynamic QR)"
@@ -738,6 +793,25 @@ def check_status():
             "utr": txn.get('utr', 'VERIFIED'),
             "date": txn.get('date'),
             "customer_name": txn.get('customer_name')
+        })
+
+    # Check if order has expired
+    now_ts = int(time.time())
+    expires_at = txn.get('expires_at')
+    if not expires_at and txn.get('date'):
+        try:
+            dt = datetime.strptime(txn.get('date', ''), '%Y-%m-%d %H:%M:%S')
+            expires_at = int(dt.timestamp()) + 600
+        except Exception:
+            pass
+    if txn.get('status') == 'EXPIRED' or (txn.get('status') == 'PENDING' and expires_at and now_ts > expires_at):
+        txn['status'] = 'EXPIRED'
+        record_transaction(txn)
+        return jsonify({
+            "success": True,
+            "status": "EXPIRED",
+            "order_id": order_id,
+            "message": "Payment session has expired."
         })
 
     # If order was created via TerminalX, poll TerminalX
@@ -825,6 +899,23 @@ def verify_utr():
     txn = get_transaction(order_id)
     if not txn:
         return jsonify({"success": False, "message": "Order not found"}), 404
+
+    # Expired order check
+    now_ts = int(time.time())
+    expires_at = txn.get('expires_at')
+    if not expires_at and txn.get('date'):
+        try:
+            dt = datetime.strptime(txn.get('date', ''), '%Y-%m-%d %H:%M:%S')
+            expires_at = int(dt.timestamp()) + 600
+        except Exception:
+            pass
+    if txn.get('status') == 'EXPIRED' or (txn.get('status') == 'PENDING' and expires_at and now_ts > expires_at):
+        txn['status'] = 'EXPIRED'
+        record_transaction(txn)
+        return jsonify({
+            "success": False,
+            "message": "Payment Expired! This payment session timed out after 10 minutes. Please create a new payment."
+        }), 400
 
     txn['status'] = 'SUCCESS'
     txn['utr'] = utr
@@ -919,9 +1010,38 @@ def get_order_details(order_id):
     txn = get_transaction(order_id)
     if txn:
         cfg = load_config()
+        now_ts = int(time.time())
+        
+        # Ensure created_at and expires_at exist
+        if 'created_at' not in txn:
+            try:
+                dt = datetime.strptime(txn.get('date', ''), '%Y-%m-%d %H:%M:%S')
+                txn['created_at'] = int(dt.timestamp())
+                txn['expires_at'] = txn['created_at'] + 600
+            except Exception:
+                txn['created_at'] = now_ts
+                txn['expires_at'] = now_ts + 600
+            record_transaction(txn)
+            
+        expires_at = txn.get('expires_at', now_ts + 600)
+        remaining_seconds = max(0, expires_at - now_ts)
+        
+        # If time has elapsed and still PENDING, mark EXPIRED
+        if remaining_seconds <= 0 and txn.get('status') == 'PENDING':
+            txn['status'] = 'EXPIRED'
+            record_transaction(txn)
+
+        is_expired = (remaining_seconds <= 0 or txn.get('status') == 'EXPIRED')
+
         return jsonify({
             "success": True,
             "order": txn,
+            "status": txn.get('status'),
+            "created_at": txn.get('created_at'),
+            "expires_at": expires_at,
+            "current_time": now_ts,
+            "remaining_seconds": remaining_seconds,
+            "is_expired": is_expired,
             "merchant_name": cfg.get('merchant_name', 'SS EMPIRE')
         })
     return jsonify({"success": False, "message": "Order not found"}), 404
