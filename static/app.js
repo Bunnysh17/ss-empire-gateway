@@ -213,7 +213,9 @@ function initForms() {
       merchant_upi: document.getElementById('settingMerchantUpi').value,
       merchant_name: document.getElementById('settingMerchantName').value,
       webhook_url: document.getElementById('settingWebhook').value,
-      discord_bot_webhook_url: document.getElementById('settingDiscordBotWebhook').value
+      discord_bot_webhook_url: document.getElementById('settingDiscordBotWebhook')?.value || '',
+      discord_bot_token: document.getElementById('settingDiscordBotToken')?.value || '',
+      discord_proof_channel_id: document.getElementById('settingDiscordProofChannelId')?.value || ''
     };
 
     try {
@@ -232,19 +234,19 @@ function initForms() {
     }
   });
 
-  // Test Discord Bot Webhook Button
+  // Test Discord Proof Button
   const btnTestBot = document.getElementById('btnTestDiscordWebhook');
   btnTestBot?.addEventListener('click', async () => {
     btnTestBot.disabled = true;
     const origText = btnTestBot.textContent;
-    btnTestBot.textContent = '⏳ Testing...';
+    btnTestBot.textContent = '⏳ Sending Proof...';
     try {
-      showToast('Pinging Nayumi Discord Bot API endpoint...');
+      showToast('Sending test payment proof to Discord channel...');
       const resp = await fetch('/api/test-discord-bot-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          order_id: 'TEST_' + Math.floor(Date.now() / 1000),
+          order_id: 'TXN' + Math.floor(Date.now() / 1000),
           amount: '100',
           utr: '760366829987',
           customer_name: 'Test Customer',
@@ -253,10 +255,10 @@ function initForms() {
       });
       const data = await resp.json();
       if (data.success) {
-        showToast('✅ Bot Webhook Success! Nayumi announced the payment.');
+        showToast('✅ Payment Proof announced directly in Discord channel!');
       } else {
-        const err = data.bot_response?.error || data.bot_response?.response || 'Bot did not return HTTP 200';
-        showToast('⚠️ Bot Test Failed: ' + err, 'error');
+        const err = data.results?.direct_discord_api?.error || data.results?.direct_discord_api?.response || 'Failed to post proof';
+        showToast('⚠️ Discord Proof Error: ' + err, 'error');
       }
     } catch (e) {
       showToast('Error connecting to gateway: ' + e.message, 'error');
@@ -458,8 +460,14 @@ async function loadConfig() {
       document.getElementById('settingMerchantUpi').value = cfg.merchant_upi || '';
       document.getElementById('settingMerchantName').value = cfg.merchant_name || '';
       document.getElementById('settingWebhook').value = cfg.webhook_url || '';
+      if (document.getElementById('settingDiscordProofChannelId')) {
+        document.getElementById('settingDiscordProofChannelId').value = cfg.discord_proof_channel_id || '1503017156541943838';
+      }
+      if (document.getElementById('settingDiscordBotToken')) {
+        document.getElementById('settingDiscordBotToken').value = cfg.discord_bot_token || '';
+      }
       if (document.getElementById('settingDiscordBotWebhook')) {
-        document.getElementById('settingDiscordBotWebhook').value = cfg.discord_bot_webhook_url || 'https://nayumi-music-bot.onrender.com/api/payment-webhook';
+        document.getElementById('settingDiscordBotWebhook').value = cfg.discord_bot_webhook_url || 'http://127.0.0.1:10000/api/payment-webhook';
       }
     }
   } catch (e) {}

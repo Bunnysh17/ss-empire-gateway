@@ -71,7 +71,9 @@ def load_config():
         "mode": "hybrid",
         "terminalx_base_url": "https://terminalx999.space",
         "webhook_url": "",
-        "discord_bot_webhook_url": "https://nayumi-music-bot.onrender.com/api/payment-webhook"
+        "discord_bot_token": "",
+        "discord_proof_channel_id": "1503017156541943838",
+        "discord_bot_webhook_url": "http://127.0.0.1:10000/api/payment-webhook"
     }
 
 
@@ -136,8 +138,90 @@ def get_bot_webhook_url():
         os.environ.get('BOT_WEBHOOK_URL') or
         os.environ.get('DISCORD_BOT_WEBHOOK_URL') or
         cfg.get('discord_bot_webhook_url') or
-        "https://nayumi-music-bot.onrender.com/api/payment-webhook"
+        "http://127.0.0.1:10000/api/payment-webhook"
     ).strip()
+
+
+def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", remark=""):
+    """
+    Method 1: Direct Official Discord REST API Call
+    Posts payment proof directly into Discord channel as Nayumi Bot with @everyone mention and verified embed.
+    """
+    cfg = load_config()
+    channel_id = (
+        os.environ.get('DISCORD_PROOF_CHANNEL_ID') or
+        cfg.get('discord_proof_channel_id') or
+        "1503017156541943838"
+    ).strip()
+
+    bot_token = (
+        os.environ.get('DISCORD_BOT_TOKEN') or
+        cfg.get('discord_bot_token') or
+        ""
+    ).strip()
+
+    name = customer_name or "Customer"
+    target_mention = f"**{name}**"
+    if remark and remark.startswith("Discord_"):
+        d_id = remark.replace("Discord_", "").strip()
+        if d_id.isdigit():
+            target_mention = f"<@{d_id}>"
+
+    discord_payload = {
+        "content": f"@everyone 📢 **New Payment Received!** ₹{amount} from {target_mention} (Bank UTR: `{utr}`)",
+        "embeds": [
+            {
+                "title": "💎 New Payment Received & Verified!",
+                "description": (
+                    f"🔥 **A new payment has been successfully received and verified!**\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"👤 **Customer:** {target_mention}\n"
+                    f"💰 **Amount Received:** `₹{amount}`\n"
+                    f"🏦 **Bank 12-Digit UTR:** `{utr}`\n"
+                    f"🆔 **Order ID:** `{order_id}`\n"
+                    f"⚡ **Gateway:** SS EMPIRE UPI Instant Gateway\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                ),
+                "color": 65406,
+                "footer": {
+                    "text": "Nayumi 🎀 • Official Payment Proof"
+                }
+            }
+        ],
+        "allowed_mentions": {
+            "parse": ["everyone", "users", "roles"]
+        }
+    }
+
+    result = {"direct_discord_api": None, "bot_webhook": None}
+
+    # 1. Official Discord REST API Post
+    if channel_id and bot_token:
+        try:
+            url = f"https://discord.com/api/v10/channels/{channel_id}/messages"
+            headers = {
+                "Authorization": f"Bot {bot_token}",
+                "Content-Type": "application/json"
+            }
+            resp = requests.post(url, json=discord_payload, headers=headers, timeout=5)
+            print(f"[Discord REST API Proof] Channel: {channel_id} | Status: {resp.status_code}")
+            result["direct_discord_api"] = {
+                "success": resp.status_code in [200, 201],
+                "status_code": resp.status_code,
+                "response": resp.text
+            }
+        except Exception as e:
+            print(f"[Discord REST API Proof Error] {e}")
+            result["direct_discord_api"] = {"success": False, "error": str(e)}
+
+    # 2. Also notify bot webhook if configured
+    try:
+        wb_res = notify_discord_bot(order_id, amount, utr, name, remark)
+        result["bot_webhook"] = wb_res
+    except Exception:
+        pass
+
+    return result
 
 
 def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark=""):
@@ -199,9 +283,9 @@ def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="
 
 
 def notify_discord_bot_async(order_id, amount, utr, customer_name="Customer", remark=""):
-    """Deduplicated async dispatcher to notify Nayumi Discord Bot without blocking checkout flow."""
+    """Deduplicated async dispatcher to send payment proof without blocking checkout flow."""
     thread = threading.Thread(
-        target=notify_discord_bot,
+        target=send_discord_payment_proof,
         args=(order_id, amount, utr, customer_name, remark),
         daemon=True
     )
@@ -209,7 +293,7 @@ def notify_discord_bot_async(order_id, amount, utr, customer_name="Customer", re
 
 
 def trigger_payment_success_notification(txn):
-    """Trigger bot notification once per order with deduplication."""
+    """Trigger bot proof announcement once per order with deduplication."""
     if not txn:
         return
     order_id = str(txn.get('order_id', '')).strip()
@@ -295,7 +379,7 @@ def get_config():
 def update_config():
     data = request.get_json(silent=True) or {}
     cfg = load_config()
-    for key in ['user_token', 'merchant_name', 'merchant_upi', 'mode', 'terminalx_base_url', 'webhook_url', 'discord_bot_webhook_url']:
+    for key in ['user_token', 'merchant_name', 'merchant_upi', 'mode', 'terminalx_base_url', 'webhook_url', 'discord_bot_webhook_url', 'discord_bot_token', 'discord_proof_channel_id']:
         if key in data and data[key] is not None:
             cfg[key] = data[key]
     save_config(cfg)
@@ -785,7 +869,7 @@ def webhook_listener():
 
 @app.route('/api/test-discord-bot-webhook', methods=['GET', 'POST'])
 def test_discord_bot_webhook():
-    """Manual or Admin test endpoint to trigger a test proof to the Discord Bot."""
+    """Manual or Admin test endpoint to trigger a test proof to Discord."""
     data = request.get_json(silent=True) or request.form.to_dict() or {}
     order_id = data.get('order_id') or ('TEST_' + str(int(time.time())))
     amount = data.get('amount') or '100'
@@ -793,19 +877,21 @@ def test_discord_bot_webhook():
     customer_name = data.get('customer_name') or 'Test User'
     remark = data.get('remark') or 'Discord_Test'
 
-    bot_url = get_bot_webhook_url()
-    res = notify_discord_bot(order_id, amount, utr, customer_name, remark)
+    res = send_discord_payment_proof(order_id, amount, utr, customer_name, remark)
+    api_success = (res.get("direct_discord_api") or {}).get("success")
+    wb_success = (res.get("bot_webhook") or {}).get("success")
+    overall_success = bool(api_success or wb_success)
+
     return jsonify({
-        "success": res.get("success", False),
-        "target_url": bot_url,
+        "success": overall_success,
+        "results": res,
         "payload_sent": {
             "order_id": str(order_id),
             "amount": str(amount),
             "utr": str(utr),
             "customer_name": str(customer_name),
             "remark": str(remark)
-        },
-        "bot_response": res
+        }
     })
 
 

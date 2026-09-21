@@ -209,41 +209,46 @@ curl -X POST https://ss-empire-gateway.onrender.com/api/check-status \
 
 ---
 
-## 🤖 Direct Discord Bot Webhook Integration (Nayumi Bot)
+## 🤖 Method 1 (Recommended): Direct Discord Bot REST API Integration
 
-Whenever a customer payment is confirmed (**`status = SUCCESS`** via bank polling, UTR verification, webhook callback, or admin simulator), the SS EMPIRE Payment Gateway sends an immediate asynchronous HTTP POST request directly to the Nayumi Discord Bot.
+Whenever a customer payment is confirmed (**`status = SUCCESS`** via bank polling, UTR verification, webhook callback, or admin simulator), the SS EMPIRE Payment Gateway calls Discord's official REST API using the Bot Token. 
 
-### Bot Endpoint Configuration:
-* **Live Cloud URL (Render):** `https://nayumi-music-bot.onrender.com/api/payment-webhook`
-* **Configurable via:** `BOT_WEBHOOK_URL` / `DISCORD_BOT_WEBHOOK_URL` environment variable or in Admin Panel settings.
+This posts the proof directly into the Discord channel **AS OUR BOT (Nayumi 🎀)** with an `@everyone` tag and verified embed — without relying on any local bot server or suspended Render endpoints!
 
-### Notification HTTP POST Request:
-* **Method:** `POST`
-* **Headers:** `Content-Type: application/json`
-* **Body:**
+### API Endpoint:
+* **Endpoint:** `POST https://discord.com/api/v10/channels/<PROOF_CHANNEL_ID>/messages`
+* **Headers:**
+  ```http
+  Authorization: Bot <DISCORD_BOT_TOKEN>
+  Content-Type: application/json
+  ```
+
+### Payload Body:
 ```json
 {
-  "order_id": "TXN178998237745E1",
-  "amount": "100",
-  "utr": "760366829987",
-  "customer_name": "Rahul",
-  "remark": "Discord_VIP"
+  "content": "@everyone 📢 **New Payment Received!** ₹100 from **Rahul** (Bank UTR: `760366829987`)",
+  "embeds": [
+    {
+      "title": "💎 New Payment Received & Verified!",
+      "description": "🔥 **A new payment has been successfully received and verified!**\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 **Customer:** **Rahul**\n💰 **Amount Received:** `₹100`\n🏦 **Bank 12-Digit UTR:** `760366829987`\n🆔 **Order ID:** `TXN178998237745E1`\n⚡ **Gateway:** SS EMPIRE UPI Instant Gateway\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+      "color": 65406,
+      "footer": {
+        "text": "Nayumi 🎀 • Official Payment Proof"
+      }
+    }
+  ],
+  "allowed_mentions": {
+    "parse": ["everyone", "users", "roles"]
+  }
 }
 ```
 
-### Expected Success Response:
-```json
-{
-  "success": true,
-  "message": "Proof announced"
-}
-```
-
-### Test Webhook Ping Endpoint:
-To verify the bot webhook at any time, send a POST/GET request to:
+### Test Proof Endpoint:
+To send a live test proof to your Discord channel at any time:
 ```bash
 curl -X POST https://ss-empire-gateway.onrender.com/api/test-discord-bot-webhook \
      -H "Content-Type: application/json" \
-     -d '{"order_id": "TEST_12345", "amount": "100", "utr": "760366829987", "customer_name": "Test User", "remark": "Discord_Test"}'
+     -d '{"order_id": "TEST_PROOF_101", "amount": "100", "utr": "760366829987", "customer_name": "Test User", "remark": "Discord_Test"}'
 ```
+
 
