@@ -134,15 +134,18 @@ except Exception:
 
 def get_bot_webhook_url():
     cfg = load_config()
-    return (
+    raw = (
         os.environ.get('BOT_WEBHOOK_URL') or
         os.environ.get('DISCORD_BOT_WEBHOOK_URL') or
         cfg.get('discord_bot_webhook_url') or
-        ""
+        "https://nayumi-music-bot.onrender.com/api/payment-webhook"
     ).strip()
+    if raw and raw.rstrip('/') == 'https://nayumi-music-bot.onrender.com':
+        raw = 'https://nayumi-music-bot.onrender.com/api/payment-webhook'
+    return raw
 
 
-def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", remark="", bot_token_override=None, channel_id_override=None):
+def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", remark="", bot_token_override=None, channel_id_override=None, bot_webhook_override=None):
     """
     Method 1: Direct Official Discord REST API Call
     Posts payment proof directly into Discord channel as Nayumi Bot with @everyone mention and verified embed.
@@ -235,10 +238,10 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
         }
 
     # 2. Also notify bot webhook if configured (skip local on Render if not reachable)
-    bot_webhook_url = get_bot_webhook_url()
-    if bot_webhook_url and not (('127.0.0.1' in bot_webhook_url or 'localhost' in bot_webhook_url) and os.environ.get('RENDER')):
+    target_webhook = bot_webhook_override or get_bot_webhook_url()
+    if target_webhook and not (('127.0.0.1' in target_webhook or 'localhost' in target_webhook) and os.environ.get('RENDER')):
         try:
-            wb_res = notify_discord_bot(order_id, amount, utr, name, remark)
+            wb_res = notify_discord_bot(order_id, amount, utr, name, remark, bot_url=target_webhook)
             result["bot_webhook"] = wb_res
         except Exception:
             pass
@@ -246,11 +249,14 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
     return result
 
 
-def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark=""):
+def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="", bot_url=None):
     """Send payment success notification directly to Nayumi Discord Bot or Discord Channel Webhook."""
-    bot_url = get_bot_webhook_url()
+    if not bot_url:
+        bot_url = get_bot_webhook_url()
     if not bot_url:
         return {"success": False, "error": "No webhook URL configured"}
+    if bot_url.rstrip('/') == 'https://nayumi-music-bot.onrender.com':
+        bot_url = 'https://nayumi-music-bot.onrender.com/api/payment-webhook'
 
     # Case 1: Standard Discord Channel Webhook (discord.com/api/webhooks/...)
     if "discord.com/api/webhooks" in bot_url or "discordapp.com/api/webhooks" in bot_url:
@@ -900,11 +906,13 @@ def test_discord_bot_webhook():
     remark = data.get('remark') or 'Discord_Test'
     bot_token = data.get('bot_token') or None
     channel_id = data.get('channel_id') or None
+    bot_webhook = data.get('bot_webhook') or None
 
     res = send_discord_payment_proof(
         order_id, amount, utr, customer_name, remark,
         bot_token_override=bot_token,
-        channel_id_override=channel_id
+        channel_id_override=channel_id,
+        bot_webhook_override=bot_webhook
     )
     api_res = res.get("direct_discord_api") or {}
     api_success = api_res.get("success", False)

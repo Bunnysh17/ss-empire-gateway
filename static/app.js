@@ -243,8 +243,9 @@ function initForms() {
     try {
       const channelId = document.getElementById('settingDiscordProofChannelId')?.value?.trim();
       const botToken = document.getElementById('settingDiscordBotToken')?.value?.trim();
+      const botWebhook = document.getElementById('settingDiscordBotWebhook')?.value?.trim();
 
-      showToast('Sending test payment proof to Discord channel...');
+      showToast('Sending test payment proof to Discord channel & Nayumi Bot...');
       const resp = await fetch('/api/test-discord-bot-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -255,12 +256,13 @@ function initForms() {
           customer_name: 'SS EMPIRE VIP',
           remark: 'Discord_Test',
           channel_id: channelId || undefined,
-          bot_token: botToken || undefined
+          bot_token: botToken || undefined,
+          bot_webhook: botWebhook || undefined
         })
       });
       const data = await resp.json();
       if (data.success) {
-        showToast('✅ Payment Proof announced directly in Discord channel!');
+        showToast('✅ Payment Proof announced! Nayumi Bot posted to Discord.');
       } else {
         const err = data.error || data.results?.direct_discord_api?.error || data.results?.direct_discord_api?.response || 'Failed to post proof';
         showToast('⚠️ Discord Proof Error: ' + (typeof err === 'object' ? JSON.stringify(err) : err), 'error');
@@ -472,7 +474,7 @@ async function loadConfig() {
         document.getElementById('settingDiscordBotToken').value = cfg.discord_bot_token || '';
       }
       if (document.getElementById('settingDiscordBotWebhook')) {
-        document.getElementById('settingDiscordBotWebhook').value = cfg.discord_bot_webhook_url || '';
+        document.getElementById('settingDiscordBotWebhook').value = cfg.discord_bot_webhook_url || 'https://nayumi-music-bot.onrender.com/api/payment-webhook';
       }
     }
   } catch (e) {}

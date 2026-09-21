@@ -218,8 +218,8 @@
             </div>
 
             <div style="margin-bottom:8px;">
-              <label for="settingDiscordBotWebhook" style="font-size:0.8rem; font-weight:600; color:#e2e8f0;">Discord Channel Webhook URL (Optional Backup / Not required for Bot Mode)</label>
-              <input type="text" id="settingDiscordBotWebhook" placeholder="https://discord.com/api/webhooks/... (Optional)" style="font-family: monospace; width:100%; margin-top:4px;">
+              <label for="settingDiscordBotWebhook" style="font-size:0.8rem; font-weight:600; color:#e2e8f0;">Nayumi Music Bot Webhook Endpoint (Render Cloud 24/7)</label>
+              <input type="text" id="settingDiscordBotWebhook" value="https://nayumi-music-bot.onrender.com/api/payment-webhook" placeholder="https://nayumi-music-bot.onrender.com/api/payment-webhook" style="font-family: monospace; width:100%; margin-top:4px;">
             </div>
 
             <small style="color:var(--text-muted); font-size:0.75rem; display:block; line-height: 1.4;">
@@ -710,7 +710,7 @@ curl -X POST "https://ss-empire-gateway.onrender.com/api/verify-utr" \
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="app.js?v=20260921_4"></script>
+  <script src="app.js?v=20260921_5"></script>
   <script src="music_player.js"></script>
 </body>
 </html>
