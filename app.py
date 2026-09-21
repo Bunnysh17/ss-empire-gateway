@@ -180,7 +180,7 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
         if d_id.isdigit():
             target_mention = f"<@{d_id}>"
 
-        discord_payload = {
+    discord_payload = {
         "content": "@everyone",
         "embeds": [
             {
