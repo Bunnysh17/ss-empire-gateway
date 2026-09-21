@@ -180,12 +180,8 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
         if d_id.isdigit():
             target_mention = f"<@{d_id}>"
 
-    discord_payload = {
-        "content": (
-            f"<a:blackcrown:1543148226100600922> 📢 **NEW PAYMENT RECEIVED!** <a:booster:1543148240432660500>\n"
-            f"<a:arrow:1543148228558721024> **`₹{amount}`** received from {target_mention} <:tick:1543148221264826418> (Bank UTR: `{utr}`)\n"
-            f"🔔 @everyone"
-        ),
+        discord_payload = {
+        "content": "@everyone",
         "embeds": [
             {
                 "author": {
@@ -195,6 +191,7 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
                 },
                 "title": "<a:blackcrown:1543148226100600922> NEW PAYMENT RECEIVED & VERIFIED! <:tick:1543148221264826418>",
                 "description": (
+                    f"🔔 **Notification:** @everyone\n"
                     f"<a:booster:1543148240432660500> **Transaction Credited & Settled Instantly!**\n"
                     f"<a:arrow:1543148228558721024> **`₹{amount}`** received from {target_mention} <:tick:1543148221264826418> (Bank UTR: `{utr}`)\n\n"
                     f"Your payment has been successfully recorded on the banking network via **SS EMPIRE Instant UPI Engine 2.0**.\n\n"
