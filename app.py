@@ -70,7 +70,8 @@ def load_config():
         "merchant_upi": "paytm.s3tuyo9@pty",
         "mode": "hybrid",
         "terminalx_base_url": "https://terminalx999.space",
-        "webhook_url": ""
+        "webhook_url": "",
+        "discord_bot_webhook_url": "https://nayumi-music-bot.onrender.com/api/payment-webhook"
     }
 
 
@@ -112,6 +113,123 @@ def get_transaction(order_id):
         if t.get('order_id') == order_id:
             return t
     return None
+
+
+# ==============================================================================
+# DISCORD BOT DIRECT INTEGRATION (NAYUMI BOT WEBHOOK)
+# ==============================================================================
+_notified_orders = set()
+_notification_lock = threading.Lock()
+
+# Preload existing notified orders from transactions
+try:
+    for _t in load_transactions():
+        if _t.get('bot_notified') and _t.get('order_id'):
+            _notified_orders.add(str(_t.get('order_id')).strip())
+except Exception:
+    pass
+
+
+def get_bot_webhook_url():
+    cfg = load_config()
+    return (
+        os.environ.get('BOT_WEBHOOK_URL') or
+        os.environ.get('DISCORD_BOT_WEBHOOK_URL') or
+        cfg.get('discord_bot_webhook_url') or
+        "https://nayumi-music-bot.onrender.com/api/payment-webhook"
+    ).strip()
+
+
+def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark=""):
+    """Send payment success notification directly to Nayumi Discord Bot or Discord Channel Webhook."""
+    bot_url = get_bot_webhook_url()
+    if not bot_url:
+        return {"success": False, "error": "No webhook URL configured"}
+
+    # Case 1: Standard Discord Channel Webhook (discord.com/api/webhooks/...)
+    if "discord.com/api/webhooks" in bot_url or "discordapp.com/api/webhooks" in bot_url:
+        target_mention = f"**{customer_name}**"
+        if remark and remark.startswith("Discord_"):
+            d_id = remark.replace("Discord_", "").strip()
+            if d_id.isdigit():
+                target_mention = f"<@{d_id}>"
+
+        discord_payload = {
+            "content": f"@everyone 📢 **New Payment Received!** ₹{amount} from {target_mention} (Bank UTR: `{utr}`)",
+            "embeds": [{
+                "title": "💎 New Payment Received & Verified!",
+                "description": (
+                    f"🔥 **A new payment has been successfully received and verified!**\n\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    f"👤 **Customer:** {target_mention} (`{customer_name}`)\n"
+                    f"💰 **Amount Received:** `₹{amount}`\n"
+                    f"🏦 **Bank 12-Digit UTR:** `{utr}`\n"
+                    f"🆔 **Order ID:** `{order_id}`\n"
+                    f"⚡ **Gateway:** SS EMPIRE UPI Instant Gateway\n"
+                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                ),
+                "color": 0x00e676,
+                "footer": {"text": "SS EMPIRE 🎀 • Official Payment Proof"}
+            }],
+            "allowed_mentions": {"parse": ["everyone", "users", "roles"]}
+        }
+        try:
+            resp = requests.post(bot_url, json=discord_payload, timeout=5)
+            print(f"[Discord Webhook Notification] Target: Discord | Status: {resp.status_code}")
+            return {"success": resp.status_code in [200, 204], "status_code": resp.status_code, "response": resp.text}
+        except Exception as e:
+            print(f"[Discord Webhook Error] {e}")
+            return {"success": False, "error": str(e)}
+
+    # Case 2: Nayumi Bot API Endpoint (JSON webhook)
+    payload = {
+        "order_id": str(order_id),
+        "amount": str(amount),
+        "utr": str(utr),
+        "customer_name": str(customer_name or "Customer"),
+        "remark": str(remark or "")
+    }
+    try:
+        resp = requests.post(bot_url, json=payload, timeout=5)
+        print(f"[Discord Bot Notification] Target: {bot_url} | Status: {resp.status_code} | Response: {resp.text}")
+        return {"success": resp.status_code == 200, "status_code": resp.status_code, "response": resp.text}
+    except Exception as e:
+        print(f"[Discord Bot Notification Error] Failed to notify bot at {bot_url}: {e}")
+        return {"success": False, "error": str(e)}
+
+
+def notify_discord_bot_async(order_id, amount, utr, customer_name="Customer", remark=""):
+    """Deduplicated async dispatcher to notify Nayumi Discord Bot without blocking checkout flow."""
+    thread = threading.Thread(
+        target=notify_discord_bot,
+        args=(order_id, amount, utr, customer_name, remark),
+        daemon=True
+    )
+    thread.start()
+
+
+def trigger_payment_success_notification(txn):
+    """Trigger bot notification once per order with deduplication."""
+    if not txn:
+        return
+    order_id = str(txn.get('order_id', '')).strip()
+    if not order_id:
+        return
+
+    with _notification_lock:
+        if order_id in _notified_orders or txn.get('bot_notified'):
+            return
+        _notified_orders.add(order_id)
+        txn['bot_notified'] = True
+        record_transaction(txn)
+
+    notify_discord_bot_async(
+        order_id=order_id,
+        amount=txn.get('amount', '0'),
+        utr=txn.get('utr', 'VERIFIED'),
+        customer_name=txn.get('customer_name', 'Customer'),
+        remark=txn.get('remark', '')
+    )
 
 
 @app.route('/')
@@ -177,7 +295,7 @@ def get_config():
 def update_config():
     data = request.get_json(silent=True) or {}
     cfg = load_config()
-    for key in ['user_token', 'merchant_name', 'merchant_upi', 'mode', 'terminalx_base_url', 'webhook_url']:
+    for key in ['user_token', 'merchant_name', 'merchant_upi', 'mode', 'terminalx_base_url', 'webhook_url', 'discord_bot_webhook_url']:
         if key in data and data[key] is not None:
             cfg[key] = data[key]
     save_config(cfg)
@@ -211,7 +329,7 @@ def test_terminalx():
         'user_token': token,
         'amount': '1',
         'order_id': 'TEST_' + str(int(time.time())),
-        'redirect_url': 'http://127.0.0.1:5000',
+        'redirect_url': 'https://ss-empire-gateway.onrender.com',
         'remark1': 'DiagnosticTest',
         'remark2': 'HealthCheck'
     }
@@ -405,6 +523,7 @@ def check_status():
                     "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 record_transaction(txn)
+                trigger_payment_success_notification(txn)
                 return jsonify({
                     "success": True,
                     "status": "SUCCESS",
@@ -419,6 +538,7 @@ def check_status():
 
     # If already marked SUCCESS or COMPLETED, return current state
     if txn.get('status') in ['SUCCESS', 'COMPLETED']:
+        trigger_payment_success_notification(txn)
         return jsonify({
             "success": True,
             "status": "SUCCESS",
@@ -441,6 +561,7 @@ def check_status():
                 txn['status'] = 'SUCCESS'
                 txn['utr'] = txn.get('utr') or ('TXN' + str(int(time.time())))
                 record_transaction(txn)
+                trigger_payment_success_notification(txn)
 
             # 2. Check full API endpoint for detailed status & real bank UTR
             resp = requests.post(f"{base_url}/api/check-order-status", data={
@@ -465,6 +586,7 @@ def check_status():
                 elif not txn.get('utr'):
                     txn['utr'] = 'TXN' + str(int(time.time()))
                 record_transaction(txn)
+                trigger_payment_success_notification(txn)
                 return jsonify({
                     "success": True,
                     "status": "SUCCESS",
@@ -516,6 +638,7 @@ def verify_utr():
     txn['status'] = 'SUCCESS'
     txn['utr'] = utr
     record_transaction(txn)
+    trigger_payment_success_notification(txn)
 
     # Webhook trigger if configured
     cfg = load_config()
@@ -553,6 +676,7 @@ def simulate_success():
     txn['status'] = 'SUCCESS'
     txn['utr'] = utr
     record_transaction(txn)
+    trigger_payment_success_notification(txn)
 
     # If webhook configured, trigger it asynchronously or synchronously
     cfg = load_config()
@@ -655,7 +779,34 @@ def webhook_listener():
                 if utr:
                     txn['utr'] = utr
                 record_transaction(txn)
+                trigger_payment_success_notification(txn)
     return jsonify({"status": "RECEIVED"})
+
+
+@app.route('/api/test-discord-bot-webhook', methods=['GET', 'POST'])
+def test_discord_bot_webhook():
+    """Manual or Admin test endpoint to trigger a test proof to the Discord Bot."""
+    data = request.get_json(silent=True) or request.form.to_dict() or {}
+    order_id = data.get('order_id') or ('TEST_' + str(int(time.time())))
+    amount = data.get('amount') or '100'
+    utr = data.get('utr') or '760366829987'
+    customer_name = data.get('customer_name') or 'Test User'
+    remark = data.get('remark') or 'Discord_Test'
+
+    bot_url = get_bot_webhook_url()
+    res = notify_discord_bot(order_id, amount, utr, customer_name, remark)
+    return jsonify({
+        "success": res.get("success", False),
+        "target_url": bot_url,
+        "payload_sent": {
+            "order_id": str(order_id),
+            "amount": str(amount),
+            "utr": str(utr),
+            "customer_name": str(customer_name),
+            "remark": str(remark)
+        },
+        "bot_response": res
+    })
 
 
 if __name__ == '__main__':

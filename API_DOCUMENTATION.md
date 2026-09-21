@@ -38,7 +38,7 @@ Creates a live order on the SS EMPIRE gateway and returns the UPI deep link + di
   "order_id": "TXN1789924627C92E",
   "amount": "50",
   "merchant_name": "SS EMPIRE",
-  "qr_image_url": "http://127.0.0.1:5000/api/qr-image/TXN1789924627C92E",
+  "qr_image_url": "https://ss-empire-gateway.onrender.com/api/qr-image/TXN1789924627C92E",
   "upi_intent": "upi://pay?pa=paytm.s3tuyo9@pty&pn=SS%20EMPIRE&tr=TXN1789924627C92E&tn=SSEMPIRE%20...&am=50.00&cu=INR",
   "message": "Order created via TerminalX"
 }
@@ -106,7 +106,7 @@ Poll this endpoint every 3–5 seconds to check if the customer has paid.
 const axios = require('axios');
 const { EmbedBuilder } = require('discord.js');
 
-const GATEWAY = 'http://127.0.0.1:5000';
+const GATEWAY = 'https://ss-empire-gateway.onrender.com';
 
 async function createDiscordPayment(channel, amount, user) {
     // 1. Create order
@@ -155,7 +155,7 @@ import time
 import requests
 import telebot
 
-GATEWAY = "http://127.0.0.1:5000"
+GATEWAY = "https://ss-empire-gateway.onrender.com"
 bot = telebot.TeleBot("YOUR_BOT_TOKEN")
 
 @bot.message_handler(commands=['pay'])
@@ -197,12 +197,53 @@ bot.infinity_polling()
 ### 3. cURL (Terminal / Postman)
 ```bash
 # 1. Create Order
-curl -X POST http://127.0.0.1:5000/api/create-order \
+curl -X POST https://ss-empire-gateway.onrender.com/api/create-order \
      -H "Content-Type: application/json" \
      -d '{"amount": "50", "customer_name": "Bunny"}'
 
 # 2. Check Status
-curl -X POST http://127.0.0.1:5000/api/check-status \
+curl -X POST https://ss-empire-gateway.onrender.com/api/check-status \
      -H "Content-Type: application/json" \
      -d '{"order_id": "TXN1789924627C92E"}'
 ```
+
+---
+
+## 🤖 Direct Discord Bot Webhook Integration (Nayumi Bot)
+
+Whenever a customer payment is confirmed (**`status = SUCCESS`** via bank polling, UTR verification, webhook callback, or admin simulator), the SS EMPIRE Payment Gateway sends an immediate asynchronous HTTP POST request directly to the Nayumi Discord Bot.
+
+### Bot Endpoint Configuration:
+* **Live Cloud URL (Render):** `https://nayumi-music-bot.onrender.com/api/payment-webhook`
+* **Configurable via:** `BOT_WEBHOOK_URL` / `DISCORD_BOT_WEBHOOK_URL` environment variable or in Admin Panel settings.
+
+### Notification HTTP POST Request:
+* **Method:** `POST`
+* **Headers:** `Content-Type: application/json`
+* **Body:**
+```json
+{
+  "order_id": "TXN178998237745E1",
+  "amount": "100",
+  "utr": "760366829987",
+  "customer_name": "Rahul",
+  "remark": "Discord_VIP"
+}
+```
+
+### Expected Success Response:
+```json
+{
+  "success": true,
+  "message": "Proof announced"
+}
+```
+
+### Test Webhook Ping Endpoint:
+To verify the bot webhook at any time, send a POST/GET request to:
+```bash
+curl -X POST https://ss-empire-gateway.onrender.com/api/test-discord-bot-webhook \
+     -H "Content-Type: application/json" \
+     -d '{"order_id": "TEST_12345", "amount": "100", "utr": "760366829987", "customer_name": "Test User", "remark": "Discord_Test"}'
+```
+
