@@ -535,24 +535,34 @@ async function loadTransactions() {
         ? `background: rgba(0, 230, 118, 0.04); border-left: 3px solid #00e676;` 
         : ``;
 
+      const custDisplay = t.customer_name ? t.customer_name : '<span style="color:var(--text-muted);">Direct Customer</span>';
+      const mobDisplay = (t.customer_mobile && t.customer_mobile !== '9876543210') 
+        ? `<br><small style="color:var(--text-muted); font-family:monospace;">${t.customer_mobile}</small>` 
+        : '';
+
       return `
         <tr style="${rowStyle}">
           <td style="font-family:monospace; font-weight:600; color:#fff;">${t.order_id}</td>
-          <td>${t.customer_name || 'Customer'}<br><small style="color:var(--text-muted);">${t.customer_mobile || ''}</small></td>
+          <td>${custDisplay}${mobDisplay}</td>
           <td style="font-weight:700; color:${isSuccess ? '#00e676' : '#fff'};">₹${t.amount}</td>
           <td>${engineBadge}</td>
           <td><span class="badge ${badgeClass}">${t.status}</span></td>
           <td style="font-family:monospace; font-size:0.82rem; font-weight:700; color:${isSuccess ? '#00e676' : 'var(--text-muted)'};">${t.utr || '-'}</td>
           <td style="font-size:0.8rem; color:var(--text-muted);">${t.date || '-'}</td>
           <td>
-            ${t.status === 'PENDING' ? `
-              <button class="btn btn-secondary btn-sm" onclick="checkLiveTxnStatus('${t.order_id}')" style="padding:4px 10px; font-size:0.75rem;">
-                Check Status
+            <div style="display:inline-flex; align-items:center; gap:6px;">
+              ${t.status === 'PENDING' ? `
+                <button class="btn btn-secondary btn-sm" onclick="checkLiveTxnStatus('${t.order_id}')" style="padding:4px 10px; font-size:0.75rem;">
+                  Check Status
+                </button>
+              ` : `<span style="color:#00e676; font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Verified Real
+                   </span>`}
+              <button onclick="deleteTxn('${t.order_id}')" title="Delete record" style="background:rgba(255,23,68,0.12); border:1px solid rgba(255,23,68,0.35); color:#ff5252; border-radius:6px; padding:4px 8px; cursor:pointer; display:inline-flex; align-items:center; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,23,68,0.3)'" onmouseout="this.style.background='rgba(255,23,68,0.12)'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
               </button>
-            ` : `<span style="color:#00e676; font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  Verified Real
-                 </span>`}
+            </div>
           </td>
         </tr>
       `;
@@ -562,6 +572,22 @@ async function loadTransactions() {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--danger);">Error loading transactions</td></tr>`;
   }
 }
+
+window.deleteTxn = async function(orderId) {
+  if (!confirm(`Permanently delete transaction record ${orderId}?`)) return;
+  try {
+    const resp = await fetch(`/api/transactions/delete/${orderId}`, { method: 'POST' });
+    const res = await resp.json();
+    if (res.success) {
+      showToast(`Transaction ${orderId} deleted!`);
+      loadTransactions();
+    } else {
+      showToast(res.message || "Failed to delete", "error");
+    }
+  } catch (e) {
+    showToast("Error deleting transaction", "error");
+  }
+};
 
 window.checkLiveTxnStatus = async function(orderId) {
   try {

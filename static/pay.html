@@ -977,8 +977,8 @@
           body: JSON.stringify({
             order_id: currentOrderId,
             amount: paramAmount,
-            customer_name: paramName || 'Customer',
-            customer_mobile: paramMobile || '9876543210',
+            customer_name: paramName || '',
+            customer_mobile: (paramMobile && paramMobile !== '9876543210') ? paramMobile : '',
             remark: paramDesc
           })
         });

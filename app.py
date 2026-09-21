@@ -553,8 +553,10 @@ def create_order():
     data = request.get_json(silent=True) or request.form.to_dict() or {}
     cfg = load_config()
 
-    customer_name = data.get('customer_name', 'Customer').strip() or 'Customer'
-    customer_mobile = data.get('customer_mobile', '9876543210').strip() or '9876543210'
+    customer_name = data.get('customer_name', '').strip() or 'Direct Customer'
+    customer_mobile = data.get('customer_mobile', '').strip()
+    if customer_mobile == '9876543210':
+        customer_mobile = ''
     amount = str(data.get('amount', '1')).strip() or '1'
     remark = data.get('remark', 'Payment').strip() or 'Payment'
     order_id = data.get('order_id', '').strip() or ('TXN' + str(int(time.time())) + str(uuid.uuid4().hex[:4])).upper()
@@ -1003,6 +1005,14 @@ def clear_transactions():
     else:
         save_transactions([])
         return jsonify({"success": True, "message": "All transactions cleared", "transactions": []})
+
+
+@app.route('/api/transactions/delete/<order_id>', methods=['POST', 'DELETE'])
+def delete_transaction(order_id):
+    txns = load_transactions()
+    new_txns = [t for t in txns if t.get('order_id') != order_id]
+    save_transactions(new_txns)
+    return jsonify({"success": True, "message": f"Order {order_id} deleted successfully", "transactions": new_txns})
 
 
 @app.route('/api/order-details/<order_id>', methods=['GET'])
