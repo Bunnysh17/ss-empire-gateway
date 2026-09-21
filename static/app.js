@@ -472,7 +472,7 @@ async function loadConfig() {
         document.getElementById('settingDiscordBotToken').value = cfg.discord_bot_token || '';
       }
       if (document.getElementById('settingDiscordBotWebhook')) {
-        document.getElementById('settingDiscordBotWebhook').value = cfg.discord_bot_webhook_url || 'http://127.0.0.1:10000/api/payment-webhook';
+        document.getElementById('settingDiscordBotWebhook').value = cfg.discord_bot_webhook_url || '';
       }
     }
   } catch (e) {}

@@ -73,7 +73,7 @@ def load_config():
         "webhook_url": "",
         "discord_bot_token": "",
         "discord_proof_channel_id": "1503017156541943838",
-        "discord_bot_webhook_url": "http://127.0.0.1:10000/api/payment-webhook"
+        "discord_bot_webhook_url": ""
     }
 
 
@@ -138,7 +138,7 @@ def get_bot_webhook_url():
         os.environ.get('BOT_WEBHOOK_URL') or
         os.environ.get('DISCORD_BOT_WEBHOOK_URL') or
         cfg.get('discord_bot_webhook_url') or
-        "http://127.0.0.1:10000/api/payment-webhook"
+        ""
     ).strip()
 
 
