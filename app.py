@@ -180,25 +180,65 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
         if d_id.isdigit():
             target_mention = f"<@{d_id}>"
 
-    discord_payload = {
-        "content": f"@everyone 📢 **New Payment Received!** ₹{amount} from {target_mention} (Bank UTR: `{utr}`)",
+        discord_payload = {
+        "content": (
+            f"@everyone <a:blackcrown:1543148226100600922> 📢 **NEW PAYMENT RECEIVED!** <a:booster:1543148240432660500>\n"
+            f"<a:arrow:1543148228558721024> **₹{amount}** received from {target_mention} <:tick:1543148221264826418> (Bank UTR: `{utr}`)"
+        ),
         "embeds": [
             {
-                "title": "💎 New Payment Received & Verified!",
+                "author": {
+                    "name": "SS EMPIRE • OFFICIAL PAYMENT VERIFICATION",
+                    "icon_url": "https://ss-empire-gateway.onrender.com/logo.png",
+                    "url": "https://ss-empire-gateway.onrender.com"
+                },
+                "title": "<a:crown:1543148555500392501> Payment Successfully Received & Verified! <:tick:1543148221264826418>",
                 "description": (
-                    f"🔥 **A new payment has been successfully received and verified!**\n\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                    f"👤 **Customer:** {target_mention}\n"
-                    f"💰 **Amount Received:** `₹{amount}`\n"
-                    f"🏦 **Bank 12-Digit UTR:** `{utr}`\n"
-                    f"🆔 **Order ID:** `{order_id}`\n"
-                    f"⚡ **Gateway:** SS EMPIRE UPI Instant Gateway\n"
-                    f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                    "<a:diamond:1545473841315319891> **Transaction Credited & Settled Instantly!**\n"
+                    "Your payment has been successfully recorded on the banking network via **SS EMPIRE Instant UPI Engine 2.0**.\n\n"
+                    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 ),
-                "color": 65406,
+                "color": 0x00E676,
+                "thumbnail": {
+                    "url": "https://ss-empire-gateway.onrender.com/logo.png"
+                },
+                "fields": [
+                    {
+                        "name": "<:profile:1543148223429083186> Customer",
+                        "value": f"{target_mention}",
+                        "inline": True
+                    },
+                    {
+                        "name": "💰 Amount Received",
+                        "value": f"**`₹{amount}` INR**",
+                        "inline": True
+                    },
+                    {
+                        "name": "<:security:1543148219217879060> Status",
+                        "value": "<:tick:1543148221264826418> **100% VERIFIED**",
+                        "inline": True
+                    },
+                    {
+                        "name": "<:details:1543148197390712913> Bank 12-Digit UTR",
+                        "value": f"**`{utr}`**",
+                        "inline": True
+                    },
+                    {
+                        "name": "🆔 Order ID",
+                        "value": f"**`{order_id}`**",
+                        "inline": True
+                    },
+                    {
+                        "name": "⚡ Gateway Engine",
+                        "value": "**SS EMPIRE UPI 2.0**",
+                        "inline": True
+                    }
+                ],
                 "footer": {
-                    "text": "Nayumi 🎀 • Official Payment Proof"
-                }
+                    "text": "Nayumi 🎀 • Instant Payment Engine • 24/7 Verified",
+                    "icon_url": "https://cdn.discordapp.com/avatars/1500772711885049916/f7ca886b5fe6e13d2b32569dea3e5def.png"
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
         ],
         "allowed_mentions": {
