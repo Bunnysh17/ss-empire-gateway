@@ -241,6 +241,9 @@ function initForms() {
     const origText = btnTestBot.textContent;
     btnTestBot.textContent = '⏳ Sending Proof...';
     try {
+      const channelId = document.getElementById('settingDiscordProofChannelId')?.value?.trim();
+      const botToken = document.getElementById('settingDiscordBotToken')?.value?.trim();
+
       showToast('Sending test payment proof to Discord channel...');
       const resp = await fetch('/api/test-discord-bot-webhook', {
         method: 'POST',
@@ -249,16 +252,18 @@ function initForms() {
           order_id: 'TXN' + Math.floor(Date.now() / 1000),
           amount: '100',
           utr: '760366829987',
-          customer_name: 'Test Customer',
-          remark: 'Discord_Test'
+          customer_name: 'SS EMPIRE VIP',
+          remark: 'Discord_Test',
+          channel_id: channelId || undefined,
+          bot_token: botToken || undefined
         })
       });
       const data = await resp.json();
       if (data.success) {
         showToast('✅ Payment Proof announced directly in Discord channel!');
       } else {
-        const err = data.results?.direct_discord_api?.error || data.results?.direct_discord_api?.response || 'Failed to post proof';
-        showToast('⚠️ Discord Proof Error: ' + err, 'error');
+        const err = data.error || data.results?.direct_discord_api?.error || data.results?.direct_discord_api?.response || 'Failed to post proof';
+        showToast('⚠️ Discord Proof Error: ' + (typeof err === 'object' ? JSON.stringify(err) : err), 'error');
       }
     } catch (e) {
       showToast('Error connecting to gateway: ' + e.message, 'error');
