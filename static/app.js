@@ -260,7 +260,13 @@ function initForms() {
           bot_webhook: botWebhook || undefined
         })
       });
-      const data = await resp.json();
+      let data;
+      try {
+        data = await resp.json();
+      } catch (_) {
+        showToast('Gateway server returned an error (HTTP ' + resp.status + ')', 'error');
+        return;
+      }
       if (data.success) {
         showToast('✅ Payment Proof announced! Nayumi Bot posted to Discord.');
       } else {

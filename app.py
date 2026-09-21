@@ -5,7 +5,7 @@ import re
 import time
 import uuid
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 import qrcode
 import requests
 from functools import wraps
@@ -180,8 +180,12 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
         if d_id.isdigit():
             target_mention = f"<@{d_id}>"
 
-            discord_payload = {
-        "content": "@everyone",
+    discord_payload = {
+        "content": (
+            f"<a:blackcrown:1543148226100600922> 📢 **NEW PAYMENT RECEIVED!** <a:booster:1543148240432660500>\n"
+            f"<a:arrow:1543148228558721024> **`₹{amount}`** received from {target_mention} <:tick:1543148221264826418> (Bank UTR: `{utr}`)\n"
+            f"🔔 @everyone"
+        ),
         "embeds": [
             {
                 "author": {
@@ -936,44 +940,53 @@ def webhook_listener():
 @app.route('/api/test-discord-bot-webhook', methods=['GET', 'POST'])
 def test_discord_bot_webhook():
     """Manual or Admin test endpoint to trigger a test proof to Discord."""
-    data = request.get_json(silent=True) or request.form.to_dict() or {}
-    order_id = data.get('order_id') or ('TEST_' + str(int(time.time())))
-    amount = data.get('amount') or '100'
-    utr = data.get('utr') or '760366829987'
-    customer_name = data.get('customer_name') or 'Test User'
-    remark = data.get('remark') or 'Discord_Test'
-    bot_token = data.get('bot_token') or None
-    channel_id = data.get('channel_id') or None
-    bot_webhook = data.get('bot_webhook') or None
+    try:
+        data = request.get_json(silent=True) or request.form.to_dict() or {}
+        order_id = data.get('order_id') or ('TEST_' + str(int(time.time())))
+        amount = data.get('amount') or '100'
+        utr = data.get('utr') or '760366829987'
+        customer_name = data.get('customer_name') or 'Test User'
+        remark = data.get('remark') or 'Discord_Test'
+        bot_token = data.get('bot_token') or None
+        channel_id = data.get('channel_id') or None
+        bot_webhook = data.get('bot_webhook') or None
 
-    res = send_discord_payment_proof(
-        order_id, amount, utr, customer_name, remark,
-        bot_token_override=bot_token,
-        channel_id_override=channel_id,
-        bot_webhook_override=bot_webhook
-    )
-    api_res = res.get("direct_discord_api") or {}
-    api_success = api_res.get("success", False)
-    wb_res = res.get("bot_webhook") or {}
-    wb_success = wb_res.get("success", False)
-    overall_success = bool(api_success or wb_success)
+        res = send_discord_payment_proof(
+            order_id, amount, utr, customer_name, remark,
+            bot_token_override=bot_token,
+            channel_id_override=channel_id,
+            bot_webhook_override=bot_webhook
+        )
+        api_res = res.get("direct_discord_api") or {}
+        api_success = api_res.get("success", False)
+        wb_res = res.get("bot_webhook") or {}
+        wb_success = wb_res.get("success", False)
+        overall_success = bool(api_success or wb_success)
 
-    error_msg = None
-    if not overall_success:
-        error_msg = api_res.get("error") or api_res.get("response") or wb_res.get("error") or "Failed to post proof to Discord"
+        error_msg = None
+        if not overall_success:
+            error_msg = api_res.get("error") or api_res.get("response") or wb_res.get("error") or "Failed to post proof to Discord"
 
-    return jsonify({
-        "success": overall_success,
-        "results": res,
-        "error": error_msg,
-        "payload_sent": {
-            "order_id": str(order_id),
-            "amount": str(amount),
-            "utr": str(utr),
-            "customer_name": str(customer_name),
-            "remark": str(remark)
-        }
-    })
+        return jsonify({
+            "success": overall_success,
+            "results": res,
+            "error": error_msg,
+            "payload_sent": {
+                "order_id": str(order_id),
+                "amount": str(amount),
+                "utr": str(utr),
+                "customer_name": str(customer_name),
+                "remark": str(remark)
+            }
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "error": f"Error: {str(e)}",
+            "results": {}
+        }), 200
 
 
 if __name__ == '__main__':
