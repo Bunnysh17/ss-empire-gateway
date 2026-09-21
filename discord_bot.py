@@ -111,7 +111,7 @@ class PaymentStatusView(discord.ui.View):
 class PaymentDetailsModal(discord.ui.Modal, title="💳 Enter Payment Details"):
     cust_name = discord.ui.TextInput(
         label="Full Name / आपका नाम",
-        placeholder="Apna poora naam likhein (e.g. Bunny Sharma)",
+        placeholder="Enter your full name (e.g. Bunny Sharma)",
         required=True,
         max_length=50
     )
@@ -145,7 +145,7 @@ class PaymentDetailsModal(discord.ui.Modal, title="💳 Enter Payment Details"):
     async def on_submit(self, interaction: discord.Interaction):
         clean_mob = re.sub(r'[^0-9]', '', self.cust_mobile.value.strip())
         if len(clean_mob) < 10:
-            await interaction.response.send_message("❌ Kripya valid 10-digit mobile number enter karein.", ephemeral=True)
+            await interaction.response.send_message("❌ Please enter a valid 10-digit mobile number.", ephemeral=True)
             return
 
         await interaction.response.defer()
@@ -168,7 +168,7 @@ class OpenPaymentModalView(discord.ui.View):
     @discord.ui.button(label="💳 Fill Details & Pay Now", style=discord.ButtonStyle.success, emoji="⚡")
     async def open_modal_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.author_id and interaction.user.id != self.author_id:
-            await interaction.response.send_message("❌ Yeh payment request aapke liye nahi hai. Apna naya payment shuru karne ke liye `/pay` ya `!pay` use karein.", ephemeral=True)
+            await interaction.response.send_message("❌ This payment request is not for you. Use `/pay` or `!pay` to start your own payment.", ephemeral=True)
             return
         await interaction.response.send_modal(
             PaymentDetailsModal(default_amount=self.default_amount, default_name=interaction.user.display_name)
@@ -179,7 +179,7 @@ async def process_payment(ctx_or_interaction, amount_str, user_name, user_id, cu
     try:
         amt = float(amount_str)
         if amt < 1:
-            msg = "❌ Minimum payment amount ₹1 hona chahiye."
+            msg = "❌ Minimum payment amount is ₹1."
             if hasattr(ctx_or_interaction, 'followup'):
                 await ctx_or_interaction.followup.send(msg, ephemeral=True)
             elif hasattr(ctx_or_interaction, 'response'):
@@ -309,8 +309,8 @@ async def cmd_pay(ctx, amount: str = None):
     embed = discord.Embed(
         title="⚡ SS EMPIRE UPI Instant Checkout",
         description=(
-            "Kripya niche diye gaye button par click karke apna **Naam**, **Mobile Number**, aur **Amount** bharein.\n"
-            "Jaise hi aap form submit karenge, turant real-time UPI QR code generate ho jayega!"
+            "Click the button below to enter your **Name**, **Mobile Number**, and **Amount**.\n"
+            "Once you submit the form, a real-time UPI QR code will be generated instantly!"
         ),
         color=0xff1744
     )

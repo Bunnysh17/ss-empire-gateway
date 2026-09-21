@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Clear old pending transactions
   document.getElementById('btnClearDemoTxns')?.addEventListener('click', async () => {
-    if (!confirm('Purani pending history clear karein? Real verified payments (with bank UTR) safe rahengi.')) return;
+    if (!confirm('Clear old pending transaction history? Real verified payments (with bank UTR) will be kept safe.')) return;
     try {
       const resp = await fetch('/api/transactions/clear', {
         method: 'POST',
@@ -163,13 +163,13 @@ function initForms() {
     const remark = document.getElementById('custRemark')?.value || 'Service Payment';
 
     if (!custName || custName.length < 2) {
-      alert("Kripya apna poora naam likhein (minimum 2 characters).");
+      alert("Please enter your full name (minimum 2 characters).");
       document.getElementById('custName')?.focus();
       return;
     }
 
     if (!cleanMobile || cleanMobile.length < 10) {
-      alert("Kripya apna valid 10-digit mobile number enter karein.");
+      alert("Please enter a valid 10-digit mobile number.");
       document.getElementById('custMobile')?.focus();
       return;
     }
