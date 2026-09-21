@@ -145,7 +145,7 @@ def get_bot_webhook_url():
     return raw
 
 
-def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", remark="", bot_token_override=None, channel_id_override=None, bot_webhook_override=None):
+def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", remark="", bot_token_override=None, channel_id_override=None, bot_webhook_override=None, customer_mobile=""):
     """
     Method 1: Direct Official Discord REST API Call
     Posts payment proof directly into Discord channel as Nayumi Bot with @everyone mention and verified embed.
@@ -173,12 +173,64 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
         except Exception:
             bot_token = ""
 
+    # Look up transaction record if mobile or name is missing
+    if not customer_mobile:
+        txn = get_transaction(order_id)
+        if txn:
+            customer_mobile = txn.get('customer_mobile', '')
+            if (not customer_name or customer_name == "Customer") and txn.get('customer_name'):
+                customer_name = txn.get('customer_name')
+
     name = customer_name or "Customer"
     target_mention = f"**{name}**"
     if remark and remark.startswith("Discord_"):
         d_id = remark.replace("Discord_", "").strip()
         if d_id.isdigit():
             target_mention = f"<@{d_id}>"
+
+    mobile_clean = str(customer_mobile).strip() if customer_mobile else ""
+    mobile_badge = f" (📱 `{mobile_clean}`)" if mobile_clean and mobile_clean != "9876543210" else ""
+
+    fields = [
+        {
+            "name": "<:profile:1543148223429083186> Customer",
+            "value": f"{target_mention}",
+            "inline": True
+        }
+    ]
+    if mobile_clean and mobile_clean != "9876543210":
+        fields.append({
+            "name": "📱 Mobile Number",
+            "value": f"**`{mobile_clean}`**",
+            "inline": True
+        })
+    fields.extend([
+        {
+            "name": "💰 Amount Received",
+            "value": f"**`₹{amount}` INR**",
+            "inline": True
+        },
+        {
+            "name": "<:security:1543148219217879060> Status",
+            "value": "<:tick:1543148221264826418> **100% VERIFIED**",
+            "inline": True
+        },
+        {
+            "name": "<:details:1543148197390712913> Bank 12-Digit UTR",
+            "value": f"**`{utr}`**",
+            "inline": True
+        },
+        {
+            "name": "🆔 Order ID",
+            "value": f"**`{order_id}`**",
+            "inline": True
+        },
+        {
+            "name": "⚡ Gateway Engine",
+            "value": "**SS EMPIRE UPI 2.0**",
+            "inline": True
+        }
+    ])
 
     discord_payload = {
         "content": "@everyone",
@@ -193,7 +245,7 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
                 "description": (
                     f"🔔 **Notification:** @everyone\n"
                     f"<a:booster:1543148240432660500> **Transaction Credited & Settled Instantly!**\n"
-                    f"<a:arrow:1543148228558721024> **`₹{amount}`** received from {target_mention} <:tick:1543148221264826418> (Bank UTR: `{utr}`)\n\n"
+                    f"<a:arrow:1543148228558721024> **`₹{amount}`** received from {target_mention}{mobile_badge} <:tick:1543148221264826418> (Bank UTR: `{utr}`)\n\n"
                     f"Your payment has been successfully recorded on the banking network via **SS EMPIRE Instant UPI Engine 2.0**.\n\n"
                     f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 ),
@@ -201,38 +253,7 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
                 "thumbnail": {
                     "url": "https://ss-empire-gateway.onrender.com/logo.png"
                 },
-                "fields": [
-                    {
-                        "name": "<:profile:1543148223429083186> Customer",
-                        "value": f"{target_mention}",
-                        "inline": True
-                    },
-                    {
-                        "name": "💰 Amount Received",
-                        "value": f"**`₹{amount}` INR**",
-                        "inline": True
-                    },
-                    {
-                        "name": "<:security:1543148219217879060> Status",
-                        "value": "<:tick:1543148221264826418> **100% VERIFIED**",
-                        "inline": True
-                    },
-                    {
-                        "name": "<:details:1543148197390712913> Bank 12-Digit UTR",
-                        "value": f"**`{utr}`**",
-                        "inline": True
-                    },
-                    {
-                        "name": "🆔 Order ID",
-                        "value": f"**`{order_id}`**",
-                        "inline": True
-                    },
-                    {
-                        "name": "⚡ Gateway Engine",
-                        "value": "**SS EMPIRE UPI 2.0**",
-                        "inline": True
-                    }
-                ],
+                "fields": fields,
                 "footer": {
                     "text": "Nayumi 🎀 • Instant Payment Engine • 24/7 Verified",
                     "icon_url": "https://cdn.discordapp.com/avatars/1500772711885049916/f7ca886b5fe6e13d2b32569dea3e5def.png"
@@ -280,7 +301,7 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
     target_webhook = bot_webhook_override or get_bot_webhook_url()
     if target_webhook and not (('127.0.0.1' in target_webhook or 'localhost' in target_webhook) and os.environ.get('RENDER')):
         try:
-            wb_res = notify_discord_bot(order_id, amount, utr, name, remark, bot_url=target_webhook)
+            wb_res = notify_discord_bot(order_id, amount, utr, name, remark, bot_url=target_webhook, customer_mobile=customer_mobile)
             result["bot_webhook"] = wb_res
         except Exception:
             pass
@@ -288,7 +309,7 @@ def send_discord_payment_proof(order_id, amount, utr, customer_name="Customer", 
     return result
 
 
-def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="", bot_url=None):
+def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="", bot_url=None, customer_mobile=""):
     """Send payment success notification directly to Nayumi Discord Bot or Discord Channel Webhook."""
     if not bot_url:
         bot_url = get_bot_webhook_url()
@@ -296,6 +317,9 @@ def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="
         return {"success": False, "error": "No webhook URL configured"}
     if bot_url.rstrip('/') == 'https://nayumi-music-bot.onrender.com':
         bot_url = 'https://nayumi-music-bot.onrender.com/api/payment-webhook'
+
+    mobile_clean = str(customer_mobile).strip() if customer_mobile else ""
+    mobile_badge = f" (📱 `{mobile_clean}`)" if mobile_clean and mobile_clean != "9876543210" else ""
 
     # Case 1: Standard Discord Channel Webhook (discord.com/api/webhooks/...)
     if "discord.com/api/webhooks" in bot_url or "discordapp.com/api/webhooks" in bot_url:
@@ -305,8 +329,20 @@ def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="
             if d_id.isdigit():
                 target_mention = f"<@{d_id}>"
 
+        webhook_fields = [
+            {"name": "👤 Customer", "value": f"{target_mention} (`{customer_name}`)", "inline": True}
+        ]
+        if mobile_clean and mobile_clean != "9876543210":
+            webhook_fields.append({"name": "📱 Mobile Number", "value": f"`{mobile_clean}`", "inline": True})
+        webhook_fields.extend([
+            {"name": "💰 Amount Received", "value": f"`₹{amount}`", "inline": True},
+            {"name": "🏦 Bank 12-Digit UTR", "value": f"`{utr}`", "inline": True},
+            {"name": "🆔 Order ID", "value": f"`{order_id}`", "inline": True},
+            {"name": "⚡ Gateway", "value": "SS EMPIRE UPI Instant Gateway", "inline": True}
+        ])
+
         discord_payload = {
-            "content": f"@everyone 📢 **New Payment Received!** ₹{amount} from {target_mention} (Bank UTR: `{utr}`)",
+            "content": f"@everyone 📢 **New Payment Received!** ₹{amount} from {target_mention}{mobile_badge} (Bank UTR: `{utr}`)",
             "embeds": [{
                 "title": "💎 New Payment Received & Verified!",
                 "description": (
@@ -320,6 +356,7 @@ def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="
                     f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 ),
                 "color": 0x00e676,
+                "fields": webhook_fields,
                 "footer": {"text": "SS EMPIRE 🎀 • Official Payment Proof"}
             }],
             "allowed_mentions": {"parse": ["everyone", "users", "roles"]}
@@ -338,6 +375,7 @@ def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="
         "amount": str(amount),
         "utr": str(utr),
         "customer_name": str(customer_name or "Customer"),
+        "customer_mobile": str(customer_mobile or ""),
         "remark": str(remark or "")
     }
     try:
@@ -349,11 +387,12 @@ def notify_discord_bot(order_id, amount, utr, customer_name="Customer", remark="
         return {"success": False, "error": str(e)}
 
 
-def notify_discord_bot_async(order_id, amount, utr, customer_name="Customer", remark=""):
+def notify_discord_bot_async(order_id, amount, utr, customer_name="Customer", remark="", customer_mobile=""):
     """Deduplicated async dispatcher to send payment proof without blocking checkout flow."""
     thread = threading.Thread(
         target=send_discord_payment_proof,
         args=(order_id, amount, utr, customer_name, remark),
+        kwargs={"customer_mobile": customer_mobile},
         daemon=True
     )
     thread.start()
@@ -379,7 +418,8 @@ def trigger_payment_success_notification(txn):
         amount=txn.get('amount', '0'),
         utr=txn.get('utr', 'VERIFIED'),
         customer_name=txn.get('customer_name', 'Customer'),
-        remark=txn.get('remark', '')
+        remark=txn.get('remark', ''),
+        customer_mobile=txn.get('customer_mobile', '')
     )
 
 
@@ -943,6 +983,7 @@ def test_discord_bot_webhook():
         amount = data.get('amount') or '100'
         utr = data.get('utr') or '760366829987'
         customer_name = data.get('customer_name') or 'Test User'
+        customer_mobile = data.get('customer_mobile') or ''
         remark = data.get('remark') or 'Discord_Test'
         bot_token = data.get('bot_token') or None
         channel_id = data.get('channel_id') or None
@@ -952,7 +993,8 @@ def test_discord_bot_webhook():
             order_id, amount, utr, customer_name, remark,
             bot_token_override=bot_token,
             channel_id_override=channel_id,
-            bot_webhook_override=bot_webhook
+            bot_webhook_override=bot_webhook,
+            customer_mobile=customer_mobile
         )
         api_res = res.get("direct_discord_api") or {}
         api_success = api_res.get("success", False)
@@ -973,6 +1015,7 @@ def test_discord_bot_webhook():
                 "amount": str(amount),
                 "utr": str(utr),
                 "customer_name": str(customer_name),
+                "customer_mobile": str(customer_mobile),
                 "remark": str(remark)
             }
         })

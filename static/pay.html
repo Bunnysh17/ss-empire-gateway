@@ -693,6 +693,14 @@
           <span>Merchant</span>
           <span id="summaryMerchantName">SS EMPIRE</span>
         </div>
+        <div class="order-item" id="summaryCustRow" style="display: none;">
+          <span>Customer</span>
+          <span id="summaryCustomerName">-</span>
+        </div>
+        <div class="order-item" id="summaryMobRow" style="display: none;">
+          <span>Mobile</span>
+          <span id="summaryCustomerMobile">-</span>
+        </div>
         <div class="order-item">
           <span>Txn ID</span>
           <span id="summaryOrderId" style="font-family: monospace;">-</span>
@@ -906,6 +914,8 @@
     const paramOrderId = urlParams.get('id') || ('TXN' + Date.now().toString().slice(-8));
     const paramAmount = urlParams.get('amount') || '1';
     const paramDesc = urlParams.get('desc') || 'Payment';
+    const paramName = urlParams.get('name') || urlParams.get('customer_name') || '';
+    const paramMobile = urlParams.get('mobile') || urlParams.get('customer_mobile') || '';
 
     async function initCheckout() {
       currentOrderId = paramOrderId;
@@ -914,6 +924,15 @@
       document.getElementById('summaryAmount').textContent = '₹' + parseFloat(paramAmount).toFixed(2);
       document.getElementById('summaryTotal').textContent = '₹' + parseFloat(paramAmount).toFixed(2);
       document.getElementById('displayAmount').textContent = parseFloat(paramAmount).toFixed(2);
+
+      if (paramName) {
+        document.getElementById('summaryCustRow').style.display = 'flex';
+        document.getElementById('summaryCustomerName').textContent = paramName;
+      }
+      if (paramMobile && paramMobile !== '9876543210') {
+        document.getElementById('summaryMobRow').style.display = 'flex';
+        document.getElementById('summaryCustomerMobile').textContent = paramMobile;
+      }
 
       // Check if order already exists
       try {
@@ -939,8 +958,8 @@
           body: JSON.stringify({
             order_id: currentOrderId,
             amount: paramAmount,
-            customer_name: 'Direct Customer',
-            customer_mobile: '9876543210',
+            customer_name: paramName || 'Customer',
+            customer_mobile: paramMobile || '9876543210',
             remark: paramDesc
           })
         });
@@ -958,6 +977,15 @@
       document.getElementById('summaryMerchantName').textContent = name;
       document.getElementById('cardMerchantName').textContent = name;
       document.getElementById('receiptMerchant').textContent = name;
+
+      if (data.customer_name) {
+        document.getElementById('summaryCustRow').style.display = 'flex';
+        document.getElementById('summaryCustomerName').textContent = data.customer_name;
+      }
+      if (data.customer_mobile && data.customer_mobile !== '9876543210') {
+        document.getElementById('summaryMobRow').style.display = 'flex';
+        document.getElementById('summaryCustomerMobile').textContent = data.customer_mobile;
+      }
 
       const upiString = data.upi_intent || data.qr_data || `upi://pay?pa=paytm.s3tuyo9@pty&pn=SS%20EMPIRE&am=${paramAmount}&cu=INR&tn=${currentOrderId}`;
 

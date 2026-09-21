@@ -156,15 +156,23 @@ function initForms() {
   checkoutForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnPayNow');
+    const custName = document.getElementById('custName')?.value.trim() || 'Customer';
+    const rawMobile = document.getElementById('custMobile')?.value.trim() || '';
+    const cleanMobile = rawMobile.replace(/[^0-9]/g, '');
     const amount = document.getElementById('custAmount')?.value || '1';
     const remark = document.getElementById('custRemark')?.value || 'Service Payment';
+
+    if (!cleanMobile || cleanMobile.length < 10) {
+      alert("Kripya apna valid 10-digit mobile number enter karein.");
+      return;
+    }
 
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner" style="width:18px; height:18px; display:inline-block; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px;"></span> Opening Secure Checkout...`;
 
     const payload = {
-      customer_name: 'Direct Customer',
-      customer_mobile: '9876543210',
+      customer_name: custName,
+      customer_mobile: cleanMobile,
       amount: amount,
       remark: remark
     };
@@ -178,12 +186,12 @@ function initForms() {
       const data = await resp.json();
 
       if (data.success && data.order_id) {
-        window.location.href = `/pay?id=${encodeURIComponent(data.order_id)}&amount=${encodeURIComponent(amount)}&desc=${encodeURIComponent(remark)}`;
+        window.location.href = `/pay?id=${encodeURIComponent(data.order_id)}&amount=${encodeURIComponent(amount)}&name=${encodeURIComponent(custName)}&mobile=${encodeURIComponent(cleanMobile)}&desc=${encodeURIComponent(remark)}`;
       } else {
-        window.location.href = `/pay?amount=${encodeURIComponent(amount)}&desc=${encodeURIComponent(remark)}`;
+        window.location.href = `/pay?amount=${encodeURIComponent(amount)}&name=${encodeURIComponent(custName)}&mobile=${encodeURIComponent(cleanMobile)}&desc=${encodeURIComponent(remark)}`;
       }
     } catch (err) {
-      window.location.href = `/pay?amount=${encodeURIComponent(amount)}&desc=${encodeURIComponent(remark)}`;
+      window.location.href = `/pay?amount=${encodeURIComponent(amount)}&name=${encodeURIComponent(custName)}&mobile=${encodeURIComponent(cleanMobile)}&desc=${encodeURIComponent(remark)}`;
     }
   });
 
